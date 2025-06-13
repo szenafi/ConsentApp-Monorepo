@@ -1,42 +1,64 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import LottieView from 'lottie-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
 const slides = [
   {
-    title: 'Bienvenue sur ConsentApp',
-    description: 'Gérez vos consentements en toute simplicité et sécurité.',
-    image: 'https://img.icons8.com/color/96/consent.png',
+    title: 'Créez votre demande',
+    description: 'Sélectionnez votre partenaire et définissez les conditions.',
+    lottie: require('../assets/animations/hero.json'),
   },
   {
-    title: 'Créez et suivez vos demandes',
-    description: 'Envoyez, recevez et archivez vos consentements avec vos contacts.',
-    image: 'https://img.icons8.com/color/96/contract-job.png',
+    title: 'Validez avec la biométrie',
+    description: 'Confirmez votre identité grâce à votre empreinte digitale.',
+    icon: 'finger-print',
   },
   {
-    title: 'Sécurité et confidentialité',
-    description: 'Toutes vos données sont protégées et chiffrées.',
-    image: 'https://img.icons8.com/color/96/lock--v1.png',
+    title: 'Consentement confirmé',
+    description: 'Recevez une preuve sécurisée et notifiez votre partenaire.',
+    lottie: require('../assets/animations/confetti.json'),
   },
 ];
 
-export default function OnboardingScreen({ navigation }) {
+export default function OnboardingScreen() {
   const [current, setCurrent] = useState(0);
+  const router = useRouter();
   const { completeOnboarding } = useAuth();
+
+  const renderIllustration = () => {
+    const slide = slides[current];
+    if (slide.lottie) {
+      return (
+        <LottieView
+          source={slide.lottie}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+      );
+    }
+    if (slide.icon) {
+      return <Ionicons name={slide.icon} size={width * 0.5} color="#3B82F6" style={styles.icon} />;
+    }
+    return <Image source={{ uri: slide.image }} style={styles.image} />;
+  };
 
   const nextSlide = async () => {
     if (current < slides.length - 1) setCurrent(current + 1);
     else {
       await completeOnboarding();
-      navigation.replace('Login');
+      router.replace('/login');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: slides[current].image }} style={styles.image} />
+      {renderIllustration()}
       <Text style={styles.title}>{slides[current].title}</Text>
       <Text style={styles.description}>{slides[current].description}</Text>
       <TouchableOpacity style={styles.button} onPress={nextSlide}>
@@ -64,6 +86,14 @@ const styles = StyleSheet.create({
     height: width * 0.5,
     marginBottom: 32,
     resizeMode: 'contain',
+  },
+  lottie: {
+    width: width * 0.6,
+    height: width * 0.6,
+    marginBottom: 32,
+  },
+  icon: {
+    marginBottom: 32,
   },
   title: {
     fontSize: 26,

@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authToken, setAuthToken] = useState(null);
+  const [onboardingDone, setOnboardingDone] = useState(false);
 
   const loadUserFromToken = useCallback(async (token) => {
     if (!token) {
@@ -37,6 +38,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = await SecureStore.getItemAsync('authToken');
         setAuthToken(token || null);
+        const done = await SecureStore.getItemAsync('onboardingDone');
+        setOnboardingDone(done === 'true');
         if (token) {
           await loadUserFromToken(token);
         } else {
@@ -75,6 +78,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const completeOnboarding = async () => {
+    await SecureStore.setItemAsync('onboardingDone', 'true');
+    setOnboardingDone(true);
+  };
+
   // FONCTION **reloadUser** à utiliser après achat
   const reloadUser = useCallback(async () => {
     setLoading(true);
@@ -101,8 +109,10 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
+        completeOnboarding,
         reloadUser,
         authToken,
+        onboardingDone,
       }}
     >
       {children}
