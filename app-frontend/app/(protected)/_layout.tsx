@@ -4,7 +4,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProtectedLayout() {
-  const { user, loading, onboardingDone } = useAuth();
+  const { user, loading, onboardingDone, authToken } = useAuth();
   const router = useRouter();
   const segments = useSegments();
 
@@ -14,13 +14,13 @@ export default function ProtectedLayout() {
     if (!onboardingDone && segments[0] !== 'onboarding') {
       router.replace('/onboarding');
     }
-    // si pas de user
-    else if (!user) {
+    // si pas de user mais token disponible
+    else if (!user && !authToken) {
       router.replace('/login');
     }
-  }, [user, loading, onboardingDone, segments]);
+  }, [user, authToken, loading, onboardingDone, segments]);
 
   // jusqu’à ce que loading soit false et user non-null, on ne montre rien
-  if (loading || !user) return null;
+  if (loading || (!user && !authToken)) return null;
   return <Slot />;
 }

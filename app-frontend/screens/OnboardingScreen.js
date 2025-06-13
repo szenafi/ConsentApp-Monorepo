@@ -28,8 +28,25 @@ const slides = [
 export default function OnboardingScreen() {
   const [current, setCurrent] = useState(0);
   const router = useRouter();
-  const { completeOnboarding } = useAuth();
+  const { completeOnboarding, authToken, user } = useAuth();
 
+  const renderIllustration = () => {
+    const slide = slides[current];
+    if (slide.lottie) {
+      return (
+        <LottieView
+          source={slide.lottie}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+      );
+    }
+    if (slide.icon) {
+      return <Ionicons name={slide.icon} size={width * 0.5} color="#3B82F6" style={styles.icon} />;
+    }
+    return null;
+  };
   const renderIllustration = () => {
     const slide = slides[current];
     if (slide.lottie) {
@@ -52,7 +69,9 @@ export default function OnboardingScreen() {
     if (current < slides.length - 1) setCurrent(current + 1);
     else {
       await completeOnboarding();
-      router.replace('/login');
+      if (authToken || user) router.replace('/dashboard');
+      else router.replace('/login');
+
     }
   };
 
@@ -81,11 +100,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     padding: 24,
   },
-  image: {
-    width: width * 0.5,
-    height: width * 0.5,
+  lottie: {
+    width: width * 0.6,
+    height: width * 0.6,
     marginBottom: 32,
-    resizeMode: 'contain',
+  },
+  icon: {
+    marginBottom: 32,
   },
   lottie: {
     width: width * 0.6,
