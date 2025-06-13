@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 export default function Index() {
   // On vérifie à la fois l'objet utilisateur et un éventuel token stocké
   // pour rediriger correctement les utilisateurs déjà authentifiés.
+
   const { user, loading, onboardingDone, authToken } = useAuth();
   const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);

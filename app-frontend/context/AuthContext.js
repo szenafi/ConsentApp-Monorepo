@@ -82,6 +82,7 @@ export const AuthProvider = ({ children }) => {
     setOnboardingDone(true);
   };
 
+  // FONCTION **reloadUser** à utiliser après achat
   const reloadUser = useCallback(async () => {
     setLoading(true);
     try {

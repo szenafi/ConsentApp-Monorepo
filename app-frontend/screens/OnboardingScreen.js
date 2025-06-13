@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
