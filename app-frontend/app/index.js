@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 
 export default function Index() {
-  const { user, loading } = useAuth();
+  const { user, loading, onboardingDone, authToken } = useAuth();
   const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -16,13 +16,15 @@ export default function Index() {
   // 2. Une fois monté et loading terminé, on redirige
   useEffect(() => {
     if (hasMounted && !loading) {
-      if (user) {
+      if (!onboardingDone) {
+        router.replace('/onboarding');
+      } else if (user || authToken) {
         router.replace('/dashboard');
       } else {
         router.replace('/login');
       }
     }
-  }, [hasMounted, loading, user]);
+  }, [hasMounted, loading, user, authToken, onboardingDone]);
 
   return null;
 }
