@@ -55,7 +55,6 @@ export const AuthProvider = ({ children }) => {
     bootstrap();
   }, [loadUserFromToken]);
 
-  // FONCTION login
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -72,7 +71,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // FONCTION logout
   const logout = async () => {
     await SecureStore.deleteItemAsync('authToken');
     setAuthToken(null);
@@ -84,7 +82,6 @@ export const AuthProvider = ({ children }) => {
     setOnboardingDone(true);
   };
 
-  // FONCTION **reloadUser** à utiliser après achat
   const reloadUser = useCallback(async () => {
     setLoading(true);
     try {
