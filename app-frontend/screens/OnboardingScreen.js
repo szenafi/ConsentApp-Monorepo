@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -45,7 +45,7 @@ export default function OnboardingScreen() {
     if (slide.icon) {
       return <Ionicons name={slide.icon} size={width * 0.5} color="#3B82F6" style={styles.icon} />;
     }
-    return <Image source={{ uri: slide.image }} style={styles.image} />;
+    return null;
   };
 
   const nextSlide = async () => {
@@ -81,12 +81,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8fafc',
     padding: 24,
-  },
-  image: {
-    width: width * 0.5,
-    height: width * 0.5,
-    marginBottom: 32,
-    resizeMode: 'contain',
   },
   lottie: {
     width: width * 0.6,

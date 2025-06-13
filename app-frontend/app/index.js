@@ -1,4 +1,3 @@
-// app/index.js
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
