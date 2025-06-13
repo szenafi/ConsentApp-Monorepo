@@ -16,6 +16,9 @@ function getSummary(consent, userId) {
     }
   }
   if (consent.status === 'ACCEPTED') {
+    if (userId === consent.partnerId) {
+      return `Bravo ! Toi et ${initiateur} avez validé le consentement par biométrie 🎉`;
+    }
     return `Bravo ! Toi et ${partenaire} avez validé le consentement par biométrie 🎉`;
   }
   if (consent.status === 'REFUSED') {
@@ -188,7 +191,7 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
       </View>
 
       {/* Boutons d'action selon statut */}
-      {consent.status === 'PENDING' && (
+      {consent.status === 'PENDING' && isPartner && (
         <View style={styles.actionsRow}>
           <TouchableOpacity style={[styles.actionButton, styles.actionButtonAccept]} onPress={() => handleAccept(consent, onAccept)}>
             <Ionicons name="checkmark" size={20} color="#fff" />
