@@ -38,3 +38,4 @@ npm start
 - Achats de crédits via Stripe
 - Notifications en temps réel
 
+Pour plus de détails, consultez les README dédiés dans `app-frontend` et `app-backend`.
