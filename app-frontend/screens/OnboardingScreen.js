@@ -47,23 +47,6 @@ export default function OnboardingScreen() {
     }
     return null;
   };
-  const renderIllustration = () => {
-    const slide = slides[current];
-    if (slide.lottie) {
-      return (
-        <LottieView
-          source={slide.lottie}
-          autoPlay
-          loop
-          style={styles.lottie}
-        />
-      );
-    }
-    if (slide.icon) {
-      return <Ionicons name={slide.icon} size={width * 0.5} color="#3B82F6" style={styles.icon} />;
-    }
-    return <Image source={{ uri: slide.image }} style={styles.image} />;
-  };
 
   const nextSlide = async () => {
     if (current < slides.length - 1) setCurrent(current + 1);
@@ -71,7 +54,6 @@ export default function OnboardingScreen() {
       await completeOnboarding();
       if (authToken || user) router.replace('/dashboard');
       else router.replace('/login');
-
     }
   };
 
@@ -99,14 +81,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8fafc',
     padding: 24,
-  },
-  lottie: {
-    width: width * 0.6,
-    height: width * 0.6,
-    marginBottom: 32,
-  },
-  icon: {
-    marginBottom: 32,
   },
   lottie: {
     width: width * 0.6,

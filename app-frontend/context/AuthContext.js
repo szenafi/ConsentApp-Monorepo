@@ -19,7 +19,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await fetchUserInfo(token);
       if (data.user) {
-        setUser({ ...data.user, packQuantity: data.packQuantity }); // packQuantity bien injecté
+        // packQuantity est renvoyé séparément, on l'injecte dans l'objet user
+        setUser({ ...data.user, packQuantity: data.packQuantity });
       } else if (data) {
         setUser(data);
       } else {
@@ -54,7 +55,6 @@ export const AuthProvider = ({ children }) => {
     bootstrap();
   }, [loadUserFromToken]);
 
-  // FONCTION login
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -71,7 +71,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // FONCTION logout
   const logout = async () => {
     await SecureStore.deleteItemAsync('authToken');
     setAuthToken(null);
