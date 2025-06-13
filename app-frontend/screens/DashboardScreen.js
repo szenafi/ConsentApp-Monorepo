@@ -37,7 +37,8 @@ import { useStripe } from '@stripe/stripe-react-native'; // ← Stripe
 const SCREEN_WIDTH = Dimensions.get('window').width;
 let confettiAnim;
 try {
-  confettiAnim = require('../../assets/animations/confetti.json');
+  // Correct relative path to animation asset
+  confettiAnim = require('../assets/animations/confetti.json');
 } catch {
   confettiAnim = null;
 }
