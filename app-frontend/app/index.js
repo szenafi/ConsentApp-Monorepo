@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 
 export default function Index() {
-  const { user, loading, onboardingDone } = useAuth();
+  const { user, loading, onboardingDone, authToken } = useAuth();
   const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -18,13 +18,13 @@ export default function Index() {
     if (hasMounted && !loading) {
       if (!onboardingDone) {
         router.replace('/onboarding');
-      } else if (user) {
+      } else if (user || authToken) {
         router.replace('/dashboard');
       } else {
         router.replace('/login');
       }
     }
-  }, [hasMounted, loading, user, onboardingDone]);
+  }, [hasMounted, loading, user, authToken, onboardingDone]);
 
   return null;
 }

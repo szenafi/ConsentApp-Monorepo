@@ -28,7 +28,7 @@ const slides = [
 export default function OnboardingScreen() {
   const [current, setCurrent] = useState(0);
   const router = useRouter();
-  const { completeOnboarding } = useAuth();
+  const { completeOnboarding, authToken, user } = useAuth();
 
   const renderIllustration = () => {
     const slide = slides[current];
@@ -52,7 +52,8 @@ export default function OnboardingScreen() {
     if (current < slides.length - 1) setCurrent(current + 1);
     else {
       await completeOnboarding();
-      router.replace('/login');
+      if (authToken || user) router.replace('/dashboard');
+      else router.replace('/login');
     }
   };
 
