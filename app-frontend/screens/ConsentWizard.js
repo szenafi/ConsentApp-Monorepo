@@ -6,6 +6,7 @@ import { COLORS, SIZES } from '../constants';
 import { api } from '../utils/api';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
 
 const steps = [
   'PARTNER',
@@ -20,6 +21,7 @@ export default function ConsentWizard() {
   const [biometryValidated, setBiometryValidated] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleNext = () => setStep((s) => Math.min(s + 1, steps.length - 1));
   const handleBack = () => setStep((s) => Math.max(s - 1, 0));
@@ -95,19 +97,24 @@ export default function ConsentWizard() {
               createdAt: new Date().toISOString(),
               status: 'PENDING',
             }}
-            userId={-1}
+            userId={user?.id ?? -1}
           />
 
           {/* -------- PATCH BIOMÉTRIQUE -------- */}
           {!biometryValidated ? (
             <TouchableOpacity style={styles.button} onPress={handleBiometricAuth} disabled={loading}>
-              <Text style={styles.buttonText}>{loading ? 'Vérification...' : 'Signer avec empreinte digitale'}</Text>
+              <Text style={styles.buttonText}>{loading ? 'Vérification...' : 'Signer avec mon empreinte digitale'}</Text>
             </TouchableOpacity>
           ) : (
             <>
-              <Text style={{ color: 'green', marginVertical: 10, fontFamily: 'Poppins-Bold' }}>Validation biométrique OK ✅</Text>
+              <Text style={{ color: 'green', marginVertical: 10, fontFamily: 'Poppins-Bold', textAlign: 'center' }}>
+                {`✅ C’est fait ! Ta signature biométrique est enregistrée.`}
+              </Text>
+              <Text style={{ marginBottom: 10, fontFamily: 'Poppins-Regular', textAlign: 'center' }}>
+                {`🚀 Envoie maintenant ta demande à ${partner?.firstName || partner?.email || 'ton partenaire'} pour finaliser ensemble ce moment d’engagement mutuel.`}
+              </Text>
               <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
-                <Text style={styles.buttonText}>{loading ? 'Envoi...' : 'Envoyer le consentement'}</Text>
+                <Text style={styles.buttonText}>{loading ? 'Envoi...' : `Envoyer la demande à ${partner?.firstName || partner?.email || 'ton partenaire'}`}</Text>
               </TouchableOpacity>
             </>
           )}
