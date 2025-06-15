@@ -93,9 +93,10 @@ export default function ConsentWizard() {
             consent={{
               user: { firstName: 'Moi', avatarUrl: '' },
               partner: partner && typeof partner === 'object' ? partner : { firstName: '', avatarUrl: '' },
-              message: partner && partner.firstName ? `Je consens à avoir une relation sexuelle avec ${partner.firstName}.` : '',
+              // Pour l'aperçu avant signature, on souhaite uniquement afficher la citation
+              message: '',
               createdAt: new Date().toISOString(),
-              status: 'PENDING',
+              status: 'DRAFT',
             }}
             userId={user?.id ?? -1}
           />
