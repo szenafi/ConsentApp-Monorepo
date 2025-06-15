@@ -8,9 +8,13 @@ import { acceptConsent, refuseConsent } from '../utils/api';
 function getSummary(consent, userId) {
   const initiateur = consent.user?.firstName || 'Quelqu’un';
   const partenaire = consent.partner?.firstName || consent.partner?.email?.split('@')[0] || 'un contact';
+
+  // Dans le dashboard du partenaire, la citation doit afficher le prénom de l'initiateur
+  const otherName = userId === consent.partnerId ? initiateur : partenaire;
+
   if (consent.status === 'DRAFT') {
     // Prévisualisation avant validation biométrique : on affiche uniquement la citation de consentement
-    return `🗨️ "Je consens à avoir une relation sexuelle avec ${partenaire}."`;
+    return `🗨️ "Je consens à avoir une relation sexuelle avec ${otherName}."`;
   }
   if (consent.status === 'PENDING') {
     if (userId === consent.userId) {
@@ -112,8 +116,17 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
     consent.status === 'REFUSED' ? 'close-circle-outline' : 'help-circle-outline';
 
   // Correction : toujours string pour message
-  const message = safeText(consent.message, 'message');
+  let message = safeText(consent.message, 'message');
   const summary = safeText(getSummary(consent, userId), 'summary');
+
+  // Si le message suit le modèle automatique, on ajuste le prénom en fonction de l'utilisateur
+  const defaultPattern = /^Je consens à avoir une relation sexuelle avec /i;
+  if (defaultPattern.test(message)) {
+    const initiateur = consent.user?.firstName || 'Quelqu’un';
+    const partenaire = consent.partner?.firstName || consent.partner?.email?.split('@')[0] || 'un contact';
+    const otherName = userId === consent.partnerId ? initiateur : partenaire;
+    message = `Je consens à avoir une relation sexuelle avec ${otherName}.`;
+  }
 
   // Correction : toujours string pour user/partner label
   const userLabel = safeText(getAvatarLabel(isInitiator, consent.user, 'Moi'), 'userLabel');
