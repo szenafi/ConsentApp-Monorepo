@@ -8,21 +8,34 @@ import { acceptConsent, refuseConsent } from '../utils/api';
 function getSummary(consent, userId) {
   const initiateur = consent.user?.firstName || 'Quelqu’un';
   const partenaire = consent.partner?.firstName || consent.partner?.email?.split('@')[0] || 'un contact';
+
+  // Dans le dashboard du partenaire, la citation doit afficher le prénom de l'initiateur
+  const otherName = userId === consent.partnerId ? initiateur : partenaire;
+
+  if (consent.status === 'DRAFT') {
+    // Prévisualisation avant validation biométrique : on affiche uniquement la citation de consentement
+    return `🗨️ "Je consens à avoir une relation sexuelle avec ${otherName}."`;
+  }
   if (consent.status === 'PENDING') {
     if (userId === consent.userId) {
-      return `En attente de la validation biométrique de ${partenaire}`;
-    } else {
-      return `${initiateur} attend ta validation biométrique !`;
+      return `En route ! Il ne manque plus que la validation de ${partenaire} pour confirmer ce consentement.`;
     }
+    if (userId === consent.partnerId) {
+      return `${initiateur} souhaite officialiser un moment avec toi. À toi de confirmer ou de refuser ce consentement.`;
+    }
+    return `Consentement en attente de la validation de ${partenaire}.`;
   }
   if (consent.status === 'ACCEPTED') {
-    if (userId === consent.partnerId) {
-      return `Bravo ! Toi et ${initiateur} avez validé le consentement par biométrie 🎉`;
-    }
-    return `Bravo ! Toi et ${partenaire} avez validé le consentement par biométrie 🎉`;
+    return `🎉 C’est officiel ! Vous avez tous les deux validé ce consentement par empreinte biométrique.`;
   }
   if (consent.status === 'REFUSED') {
-    return `Consentement refusé par ${userId === consent.partnerId ? 'toi' : partenaire}`;
+    if (userId === consent.userId) {
+      return `❌ ${partenaire} a choisi de ne pas confirmer ce consentement. 💡 Tu peux en discuter ensemble si besoin, ou créer une nouvelle demande plus tard.`;
+    }
+    if (userId === consent.partnerId) {
+      return '❌ Tu as refusé cette demande.';
+    }
+    return 'Consentement refusé.';
   }
   return 'Statut inconnu';
 }
@@ -103,8 +116,17 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
     consent.status === 'REFUSED' ? 'close-circle-outline' : 'help-circle-outline';
 
   // Correction : toujours string pour message
-  const message = safeText(consent.message, 'message');
+  let message = safeText(consent.message, 'message');
   const summary = safeText(getSummary(consent, userId), 'summary');
+
+  // Si le message suit le modèle automatique, on ajuste le prénom en fonction de l'utilisateur
+  const defaultPattern = /^Je consens à avoir une relation sexuelle avec /i;
+  if (defaultPattern.test(message)) {
+    const initiateur = consent.user?.firstName || 'Quelqu’un';
+    const partenaire = consent.partner?.firstName || consent.partner?.email?.split('@')[0] || 'un contact';
+    const otherName = userId === consent.partnerId ? initiateur : partenaire;
+    message = `Je consens à avoir une relation sexuelle avec ${otherName}.`;
+  }
 
   // Correction : toujours string pour user/partner label
   const userLabel = safeText(getAvatarLabel(isInitiator, consent.user, 'Moi'), 'userLabel');
