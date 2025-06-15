@@ -8,6 +8,10 @@ import { acceptConsent, refuseConsent } from '../utils/api';
 function getSummary(consent, userId) {
   const initiateur = consent.user?.firstName || 'Quelqu’un';
   const partenaire = consent.partner?.firstName || consent.partner?.email?.split('@')[0] || 'un contact';
+  if (consent.status === 'DRAFT') {
+    // Prévisualisation avant validation biométrique : on affiche uniquement la citation de consentement
+    return `🗨️ "Je consens à avoir une relation sexuelle avec ${partenaire}."`;
+  }
   if (consent.status === 'PENDING') {
     if (userId === consent.userId) {
       return `En route ! Il ne manque plus que la validation de ${partenaire} pour confirmer ce consentement.`;
