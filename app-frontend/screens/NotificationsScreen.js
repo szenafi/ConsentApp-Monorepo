@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useNotifications } from '../context/NotificationContext';
 import { COLORS } from '../constants';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function NotificationsScreen() {
   const { notifications, loadNotifications, markAsRead, markAllAsRead } = useNotifications();
