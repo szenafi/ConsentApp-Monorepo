@@ -620,6 +620,24 @@ app.put('/api/notifications/mark-read', authenticateToken, async (req, res) => {
   }
 });
 
+// Marquer une notification individuelle comme lue
+app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+  try {
+    const notificationId = parseInt(req.params.id, 10);
+    if (isNaN(notificationId)) {
+      return res.status(400).json({ message: "ID de notification invalide" });
+    }
+    await prisma.notification.updateMany({
+      where: { id: notificationId, userId: req.user.id },
+      data: { isRead: true },
+    });
+    res.json({ message: 'Notification marquée comme lue' });
+  } catch (error) {
+    console.error('Erreur notification read :', error);
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+});
+
 // Route pour créer un PaymentIntent (avec mise à jour temporaire)
 app.post('/api/packs/payment-sheet', authenticateToken, validate(packPaymentSchema), async (req, res) => {
   try {

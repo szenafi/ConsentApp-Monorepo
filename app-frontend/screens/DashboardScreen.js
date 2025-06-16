@@ -22,8 +22,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import {
   getConsentHistory,
-  getUnreadNotifications,
-  markNotificationsAsRead,
   createPaymentSheet,
 } from '../utils/api';
 import NotificationBanner from '../components/NotificationBanner';
@@ -33,6 +31,7 @@ import { COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
 import SafeLottieView from '../components/SafeLottieView';
 import { useStripe } from '@stripe/stripe-react-native'; // ← Stripe
+import { useNotifications } from '../context/NotificationContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 let confettiAnim;
@@ -47,9 +46,9 @@ export default function DashboardScreen() {
   const { user, loading, logout, reloadUser } = useAuth(); // Ajout reloadUser ici !
   const router = useRouter();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { notifications, loadNotifications, markAllAsRead } = useNotifications();
 
   const [history, setHistory] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [search, setSearch] = useState('');
@@ -66,19 +65,16 @@ export default function DashboardScreen() {
     if (loading) return;
     setRefreshing(true);
     try {
-      const [histRes, notifRes] = await Promise.all([
-        getConsentHistory(),
-        getUnreadNotifications(),
-      ]);
+      const histRes = await getConsentHistory();
       setHistory(Array.isArray(histRes) ? histRes : histRes.consents || []);
-      setNotifications(notifRes || []);
+      await loadNotifications();
     } catch (err) {
       console.error(err);
       Alert.alert('Erreur', 'Impossible de charger les données.');
     } finally {
       setRefreshing(false);
     }
-  }, [loading]);
+  }, [loading, loadNotifications]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -104,8 +100,7 @@ export default function DashboardScreen() {
   // 5. Marquer notifications lues
   const handleMarkAllRead = async () => {
     try {
-      await markNotificationsAsRead();
-      setNotifications([]);
+      await markAllAsRead();
     } catch {
       Alert.alert('Erreur', 'Impossible de marquer les notifications comme lues.');
     }
