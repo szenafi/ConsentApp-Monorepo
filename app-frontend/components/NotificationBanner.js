@@ -1,11 +1,18 @@
 // /ConsentApp/app-frontend/components/NotificationBanner.js
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import LottieView from 'lottie-react-native';
+import SafeLottieView from './SafeLottieView';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { COLORS, SIZES } from '../constants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
+let confettiAnim;
+try {
+  confettiAnim = require('../assets/animations/confetti.json');
+} catch {
+  confettiAnim = null;
+}
 
 export default function NotificationBanner({ notifications, onMarkAllRead }) {
   const [visible, setVisible] = React.useState(true);
@@ -61,11 +68,12 @@ export default function NotificationBanner({ notifications, onMarkAllRead }) {
   return (
     <Animated.View style={styles.toastContainer}>
       <View style={styles.toastContent}>
-        <LottieView
-          source={require('../assets/animations/confetti.json')}
+        <SafeLottieView
+          source={confettiAnim}
           autoPlay
           loop={false}
           style={styles.toastIcon}
+          fallback={<Ionicons name="sparkles-outline" size={32} color={COLORS.primary} style={styles.toastIcon} />}
         />
         <Text style={styles.toastMessage}>{getFunMessage(notification)}</Text>
         <TouchableOpacity style={styles.toastButton} onPress={() => setVisible(false)}>

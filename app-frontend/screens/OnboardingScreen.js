@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
-import LottieView from 'lottie-react-native';
+import SafeLottieView from '../components/SafeLottieView';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
+let heroAnim;
+let confettiAnim;
+try {
+  heroAnim = require('../assets/animations/hero.json');
+} catch {
+  heroAnim = null;
+}
+try {
+  confettiAnim = require('../assets/animations/confetti.json');
+} catch {
+  confettiAnim = null;
+}
+
 const slides = [
   {
     title: 'Créez votre demande',
     description: 'Sélectionnez votre partenaire et définissez les conditions.',
-    lottie: require('../assets/animations/hero.json'),
+    lottie: heroAnim,
   },
   {
     title: 'Validez avec la biométrie',
@@ -21,7 +34,7 @@ const slides = [
   {
     title: 'Consentement confirmé',
     description: 'Recevez une preuve sécurisée et notifiez votre partenaire.',
-    lottie: require('../assets/animations/confetti.json'),
+    lottie: confettiAnim,
   },
 ];
 
@@ -34,11 +47,19 @@ export default function OnboardingScreen() {
     const slide = slides[current];
     if (slide.lottie) {
       return (
-        <LottieView
+        <SafeLottieView
           source={slide.lottie}
           autoPlay
           loop
           style={styles.lottie}
+          fallback={
+            <Ionicons
+              name="image-outline"
+              size={width * 0.5}
+              color="#3B82F6"
+              style={styles.icon}
+            />
+          }
         />
       );
     }
