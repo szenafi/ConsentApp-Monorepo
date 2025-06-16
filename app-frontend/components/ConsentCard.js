@@ -3,6 +3,9 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Animated } from 'react
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { acceptConsent, refuseConsent } from '../utils/api';
+import useConsentNotifications from '../hooks/useConsentNotifications';
+import ConsentModal from './notifications/ConsentModal';
+import { consentMessages } from '../lib/notifications/messages';
 
 function getSummary(consent, userId) {
   const initiateur = consent.user?.firstName || 'Quelqu’un';
@@ -69,7 +72,10 @@ function isConsentValid(consent) {
 }
 
 export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
-  if (!isConsentValid(consent)) {
+  const valid = isConsentValid(consent);
+  const isInitiator = valid && consent.userId === userId;
+  const { modalVisible, setModalVisible } = useConsentNotifications(valid ? consent : null, isInitiator);
+  if (!valid) {
     return (
       <View style={{ padding: 16, backgroundColor: '#fee2e2', borderRadius: 10, margin: 8 }}>
         <Text style={{ color: '#b91c1c', fontWeight: 'bold' }}>Erreur : consentement mal formé</Text>
@@ -77,10 +83,7 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
       </View>
     );
   }
-
-  const isInitiator = consent.userId === userId;
   const isPartner = consent.partnerId === userId;
-
   const statusColor =
     consent.status === 'PENDING' ? '#F59E42' :
     consent.status === 'ACCEPTED' ? '#22C55E' :
@@ -135,7 +138,8 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
   }, [fadeAnim]);
 
   return (
-    <Animated.View style={[styles.card, { opacity: fadeAnim }]}>  
+    <>
+    <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
         {!!consent.emoji && <Text style={styles.emoji}>{safeText(consent.emoji)}</Text>}
         {!!consent.type && <Text style={styles.type}>{safeText(consent.type)}</Text>}
@@ -180,6 +184,13 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
         </View>
       )}
     </Animated.View>
+    <ConsentModal
+      visible={modalVisible}
+      message={consentMessages.PENDING_PARTNER(consent)}
+      onClose={() => setModalVisible(false)}
+      onAction={() => setModalVisible(false)}
+    />
+    </>
   );
 }
 
