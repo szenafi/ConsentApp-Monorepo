@@ -24,14 +24,12 @@ import {
   getConsentHistory,
   createPaymentSheet,
 } from '../utils/api';
-import NotificationBanner from '../components/NotificationBanner';
 import ConsentCard from '../components/ConsentCard';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
 import SafeLottieView from '../components/SafeLottieView';
 import { useStripe } from '@stripe/stripe-react-native'; // ← Stripe
-import { useNotifications } from '../context/NotificationContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 let confettiAnim;
@@ -46,7 +44,6 @@ export default function DashboardScreen() {
   const { user, loading, logout, reloadUser } = useAuth(); // Ajout reloadUser ici !
   const router = useRouter();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const { notifications, loadNotifications, markAllAsRead } = useNotifications();
 
   const [history, setHistory] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,14 +64,13 @@ export default function DashboardScreen() {
     try {
       const histRes = await getConsentHistory();
       setHistory(Array.isArray(histRes) ? histRes : histRes.consents || []);
-      await loadNotifications();
     } catch (err) {
       console.error(err);
       Alert.alert('Erreur', 'Impossible de charger les données.');
     } finally {
       setRefreshing(false);
     }
-  }, [loading, loadNotifications]);
+  }, [loading]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -97,16 +93,7 @@ export default function DashboardScreen() {
     return () => { subShow.remove(); subHide.remove(); };
   }, []);
 
-  // 5. Marquer notifications lues
-  const handleMarkAllRead = async () => {
-    try {
-      await markAllAsRead();
-    } catch {
-      Alert.alert('Erreur', 'Impossible de marquer les notifications comme lues.');
-    }
-  };
-
-  // 6. Achat de crédits (paiement Stripe) AVEC MISE À JOUR CRÉDITS
+  // 5. Achat de crédits (paiement Stripe) AVEC MISE À JOUR CRÉDITS
   const handleBuyCredits = async qty => {
     setShowBuyModal(false);
     try {
@@ -191,13 +178,7 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Notifications */}
-      {notifications.length > 0 && (
-        <NotificationBanner
-          notifications={notifications}
-          onMarkAllRead={handleMarkAllRead}
-        />
-      )}
+
 
       {/* Search Bar */}
       <View style={styles.searchWrap}>
@@ -314,8 +295,6 @@ const styles = StyleSheet.create({
   bold: { fontWeight: 'bold' },
   settingsBtn: { padding: 6 },
   logoutBtn: { padding: 6, marginLeft: 4 },
-
-  /* NotificationBanner déjà stylé dans son composant */
 
   /* Search */
   searchWrap: {

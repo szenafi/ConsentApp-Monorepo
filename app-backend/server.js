@@ -372,15 +372,6 @@ app.post('/api/consent', authenticateToken, validate(consentSchema), async (req,
         },
       });
     });
-    await prisma.notification.create({
-      data: {
-        userId: partner.id,
-        type: 'CONSENT_REQUEST',
-        message: `Nouvelle demande de consentement de ${user.firstName || 'un utilisateur'}`,
-        consentId: consent.id,
-        isRead: false,
-      },
-    });
     res.status(201).json({ message: 'Consentement créé', consentId: consent.id });
   } catch (error) {
     console.error('Erreur consent:', error);
@@ -542,18 +533,7 @@ app.put('/api/consent/:id/confirm-biometric', authenticateToken, async (req, res
       data: updateData,
     });
 
-    // Créer une notification pour l'autre partie
-    const recipientId = isInitiator ? consent.partnerId : consent.userId;
-    const senderRole = isInitiator ? "l'initiateur" : "le partenaire";
-    await prisma.notification.create({
-      data: {
-        userId: recipientId,
-        type: 'BIOMETRIC_CONFIRMATION',
-        message: `${senderRole} a validé le consentement #${consentId} par biométrie.`,
-        consentId: consentId,
-        isRead: false,
-      },
-    });
+
 
     res.json({ message: 'Validation biométrique enregistrée' });
   } catch (error) {
@@ -562,81 +542,6 @@ app.put('/api/consent/:id/confirm-biometric', authenticateToken, async (req, res
   }
 });
 
-// Routes pour les notifications
-app.get('/api/notifications/unread', authenticateToken, async (req, res) => {
-  try {
-    const notifications = await prisma.notification.findMany({
-      where: { userId: req.user.id, isRead: false },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true, type: true, message: true, consentId: true, isRead: true, createdAt: true },
-    });
-    // Sécurisation des champs dynamiques
-    const safeNotifications = notifications.map(n => ({
-      ...n,
-      type: typeof n.type === 'string' ? n.type : '',
-      message: typeof n.message === 'string' ? n.message : '',
-    }));
-    res.json(safeNotifications);
-  } catch (error) {
-    console.error('Erreur notifications:', error);
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
-  }
-});
-
-app.put('/api/notifications/mark-as-read', authenticateToken, async (req, res) => {
-  try {
-    const { notificationIds } = req.body;
-    await prisma.notification.updateMany({
-      where: { id: { in: notificationIds }, userId: req.user.id },
-      data: { isRead: true },
-    });
-    res.json({ message: 'Notifications marquées comme lues' });
-  } catch (error) {
-    console.error('Erreur mark notifications:', error);
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
-  }
-});
-
-// Nouvelle route pour marquer les notifications comme lues (correspond à l'appel dans utils/api.js)
-app.put('/api/notifications/mark-read', authenticateToken, async (req, res) => {
-  try {
-    const { ids } = req.body;
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "Liste d'IDs de notifications invalide" });
-    }
-    await prisma.notification.updateMany({
-      where: {
-        id: { in: ids },
-        userId: req.user.id,
-      },
-      data: {
-        isRead: true,
-      },
-    });
-    res.json({ message: 'Notifications marquées comme lues' });
-  } catch (error) {
-    console.error('Erreur lors du marquage des notifications comme lues :', error);
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
-  }
-});
-
-// Marquer une notification individuelle comme lue
-app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
-  try {
-    const notificationId = parseInt(req.params.id, 10);
-    if (isNaN(notificationId)) {
-      return res.status(400).json({ message: "ID de notification invalide" });
-    }
-    await prisma.notification.updateMany({
-      where: { id: notificationId, userId: req.user.id },
-      data: { isRead: true },
-    });
-    res.json({ message: 'Notification marquée comme lue' });
-  } catch (error) {
-    console.error('Erreur notification read :', error);
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
-  }
-});
 
 // Route pour créer un PaymentIntent (avec mise à jour temporaire)
 app.post('/api/packs/payment-sheet', authenticateToken, validate(packPaymentSchema), async (req, res) => {
