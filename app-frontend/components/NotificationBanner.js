@@ -5,7 +5,7 @@ import SafeLottieView from './SafeLottieView';
 import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import { COLORS, SIZES } from '../constants';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 
 let confettiAnim;
 try {
