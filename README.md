@@ -4,7 +4,7 @@ ConsentApp est une application permettant de gérer des consentements entre util
 
 app-frontend : l'application mobile React Native (Expo).
 
-app-backend : l'API Node.js/Express qui gère les utilisateurs, les consentements, les paiements Stripe et les notifications.
+app-backend : l'API Node.js/Express qui gère les utilisateurs, les consentements et les paiements Stripe.
 
 Installation
 
@@ -35,8 +35,6 @@ Authentification par email et Google
 Création et gestion des consentements
 
 Achats de crédits via Stripe
-
-Notifications en temps réel
 
 Structure du projet
 

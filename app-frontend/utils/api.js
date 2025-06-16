@@ -138,33 +138,6 @@ export async function getConsentHistory() {
   return res.data;
 }
 
-// ----------- NOTIFICATIONS -----------
-
-export async function getUnreadNotifications() {
-  const res = await api.get('/notifications/unread');
-  return res.data;
-}
-
-export async function fetchUnreadNotifications() {
-  const res = await api.get('/notifications/unread');
-  return res.data;
-}
-
-export async function markNotificationsAsRead(ids = []) {
-  const res = await api.put('/notifications/mark-as-read', { notificationIds: ids });
-  return res.data;
-}
-
-export async function markReadNotifications(ids = []) {
-  const res = await api.put('/notifications/mark-read', { ids });
-  return res.data;
-}
-
-export async function markNotificationAsRead(notificationId) {
-  const res = await api.put(`/notifications/${notificationId}/read`);
-  return res.data;
-}
-
 // ----------- PAIEMENT -----------
 
 export async function createPaymentSheet(quantity) {
