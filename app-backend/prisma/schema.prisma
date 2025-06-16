@@ -12,13 +12,6 @@ enum PaymentStatus {
   FAILED
 }
 
-enum NotificationType {
-  CONSENT_REQUEST
-  CONSENT_ACCEPTED
-  CONSENT_REFUSED
-  BIOMETRIC_CONFIRMATION // Ajouté
-  SYSTEM
-}
 
 // Générateur Prisma Client
 generator client {
@@ -58,7 +51,6 @@ model User {
   badges           Badge[]          @relation("UserBadges") // Relation many-to-many avec Badge
   consents         Consent[]        @relation("UserConsent")
   partnerConsents  Consent[]        @relation("PartnerConsent")
-  notifications    Notification[]   @relation("UserNotifications")
   packConsentement PackConsentement?  // Lien vers le pack de consentements
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -85,7 +77,6 @@ model Consent {
   archived             Boolean        @default(false) // Archivage après validation/refus
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
-  notifications        Notification[] @relation("ConsentNotifications")
   message              String?        // Ajouté pour wizard moderne
   emoji                String?        // Ajouté pour wizard moderne
   type                 String?        // Ajouté pour wizard moderne
@@ -102,21 +93,4 @@ model PackConsentement {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   user        User     @relation(fields: [userId], references: [id])
-}
-
-// Modèle Notification
-model Notification {
-  id        Int             @id @default(autoincrement())
-  userId    Int
-  user      User            @relation("UserNotifications", fields: [userId], references: [id])
-  type      NotificationType
-  message   String
-  consentId Int?            // ID du consentement associé (optionnel)
-  consent   Consent?        @relation("ConsentNotifications", fields: [consentId], references: [id])
-  isRead    Boolean         @default(false)
-  metadata  Json?           // Données supplémentaires (ex. contexte de la notification)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-
-  @@map("notification")
 }
