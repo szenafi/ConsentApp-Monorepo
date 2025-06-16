@@ -1,12 +1,19 @@
 import React from 'react';
-import LottieView from 'lottie-react-native';
+import SafeLottieView from './SafeLottieView';
 import { View, StyleSheet } from 'react-native';
 
 export default function HeroAnimation() {
+  let heroAnim;
+  try {
+    heroAnim = require('../assets/animations/hero.json');
+  } catch {
+    heroAnim = null;
+  }
+
   return (
     <View style={styles.container}>
-      <LottieView
-        source={require('../assets/animations/hero.json')}
+      <SafeLottieView
+        source={heroAnim}
         autoPlay
         loop
         style={styles.animation}

@@ -31,7 +31,7 @@ import ConsentCard from '../components/ConsentCard';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
-import LottieView from 'lottie-react-native';
+import SafeLottieView from '../components/SafeLottieView';
 import { useStripe } from '@stripe/stripe-react-native'; // ← Stripe
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -226,11 +226,13 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchData} />}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            {confettiAnim ? (
-              <LottieView source={confettiAnim} autoPlay loop style={styles.lottie} />
-            ) : (
-              <Text style={styles.emptyText}>Aucun consentement.</Text>
-            )}
+            <SafeLottieView
+              source={confettiAnim}
+              autoPlay
+              loop
+              style={styles.lottie}
+              fallback={<Text style={styles.emptyText}>Aucun consentement.</Text>}
+            />
           </View>
         )}
         renderItem={({ item }) => (
