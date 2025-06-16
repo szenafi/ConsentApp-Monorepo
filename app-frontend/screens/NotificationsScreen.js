@@ -1,3 +1,5 @@
+// ✅ Fichier : app-frontend/screens/NotificationsScreen.js
+
 import React, { useEffect } from 'react';
 import {
   View,
