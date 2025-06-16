@@ -1,2 +1,3 @@
 import NotificationsScreen from '../screens/NotificationsScreen';
-export default NotificationsScreen; 
+export default NotificationsScreen;
+
