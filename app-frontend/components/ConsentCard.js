@@ -3,9 +3,6 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Animated } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { acceptConsent, refuseConsent } from '../utils/api';
-import useConsentNotifications from '../hooks/useConsentNotifications';
-import ConsentModal from './notifications/ConsentModal';
-import { consentMessages } from '../lib/notifications/messages';
 
 function getSummary(consent, userId) {
   const initiateur = consent.user?.firstName || 'Quelqu’un';
@@ -74,7 +71,6 @@ function isConsentValid(consent) {
 export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
   const valid = isConsentValid(consent);
   const isInitiator = valid && consent.userId === userId;
-  const { modalVisible, setModalVisible } = useConsentNotifications(valid ? consent : null, isInitiator);
   if (!valid) {
     return (
       <View style={{ padding: 16, backgroundColor: '#fee2e2', borderRadius: 10, margin: 8 }}>
@@ -184,12 +180,6 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
         </View>
       )}
     </Animated.View>
-    <ConsentModal
-      visible={modalVisible}
-      message={consentMessages.PENDING_PARTNER(consent)}
-      onClose={() => setModalVisible(false)}
-      onAction={() => setModalVisible(false)}
-    />
     </>
   );
 }
