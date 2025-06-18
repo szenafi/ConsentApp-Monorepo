@@ -173,28 +173,34 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
   try {
     const isMultipart = req.is('multipart/form-data');
 
-    const data = isMultipart
-      ? {
-          email: req.body.email,
-          password: req.body.password,
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-          dateOfBirth: req.body.dateOfBirth,
-          photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
-        }
-      : req.body;
+    let body = {};
+    if (isMultipart) {
+      // Lorsque le frontend envoie un FormData, Express ne parse pas
+      // automatiquement les valeurs JSON. On récupère donc les champs
+      // manuellement depuis req.body et on ajoute l'URL de la photo si présente.
+      body = {
+        email: req.body.email,
+        password: req.body.password,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        dateOfBirth: req.body.dateOfBirth,
+        photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+      };
+    } else {
+      body = req.body;
+    }
 
-    if (!data.email || !data.password) {
+    if (!body.email || !body.password) {
       return res.status(400).json({
         message: 'Champs requis manquants',
         errors: [
-          !data.email ? { path: ['email'], message: 'Requis' } : null,
-          !data.password ? { path: ['password'], message: 'Requis' } : null,
+          !body.email ? { path: ['email'], message: 'Requis' } : null,
+          !body.password ? { path: ['password'], message: 'Requis' } : null,
         ].filter(Boolean),
       });
     }
 
-    const parsed = signupSchema.parse(data);
+    const parsed = signupSchema.parse(body);
     const hashedPassword = await bcrypt.hash(parsed.password, 10);
 
     const user = await prisma.user.create({

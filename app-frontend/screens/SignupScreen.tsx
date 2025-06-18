@@ -48,8 +48,9 @@ export default function SignupScreen() {
       }
 
       let payload: any;
+      const isFormData = !!photo;
 
-      if (photo) {
+      if (isFormData) {
         const formData = new FormData();
         formData.append('email', parsed.email);
         formData.append('password', parsed.password);
@@ -78,7 +79,7 @@ export default function SignupScreen() {
       }
 
       const response = await api.post('/auth/signup', payload, {
-        headers: payload instanceof FormData
+        headers: isFormData
           ? { 'Content-Type': 'multipart/form-data' }
           : { 'Content-Type': 'application/json' },
       });
