@@ -78,6 +78,7 @@ export default function SignupScreen() {
 
 
 
+
       const response = await api.post('/auth/signup', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -108,9 +109,11 @@ export default function SignupScreen() {
     } catch (error: any) {
       console.error('Erreur lors de l’inscription :', error?.response?.data || error.message);
       const message =
-        error?.response?.status === 409
-          ? 'Email déjà utilisé'
-          : error.message || 'Erreur lors de l’inscription';
+        error.message === 'Network Error'
+          ? "Impossible de contacter le serveur. Vérifiez l'URL EXPO_PUBLIC_API_BASE_URL"
+          : error?.response?.status === 409
+            ? 'Email déjà utilisé'
+            : error.message || 'Erreur lors de l’inscription';
       ToastAndroid.show(message, ToastAndroid.SHORT);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {

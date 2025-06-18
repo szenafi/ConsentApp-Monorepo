@@ -96,6 +96,7 @@ STRIPE_SECRET_KEY=<clé-secrète-stripe>
 
 Frontend (.env dans app-frontend)
 
+
 # Utilisé côté mobile
 EXPO_PUBLIC_API_BASE_URL=http://localhost:5000
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
@@ -122,6 +123,10 @@ Certaines requêtes réseau (Lottie/icons) peuvent être bloquées si l’enviro
 assets10.lottiefiles.com
 
 img.icons8.com
+
+En cas d’erreur « Network Error » lors de l’inscription, assurez‑vous que
+`EXPO_PUBLIC_API_BASE_URL` pointe vers une adresse accessible par votre
+émulateur ou votre téléphone.
 
 Auteurs
 
