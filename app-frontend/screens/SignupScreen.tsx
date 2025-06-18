@@ -6,9 +6,9 @@ import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../context/AuthContext';
 import { API_URL, COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
-import ImagePickerInput from '../components/forms/ImagePickerInput';
-import DatePickerInput from '../components/forms/DatePickerInput';
-import PasswordInput from '../components/forms/PasswordInput';
+import PhotoUploader from '../components/forms/PhotoUploader';
+import DateInput from '../components/forms/DateInput';
+import SecureInput from '../components/forms/SecureInput';
 import { registerSchema } from '../lib/validation/registerSchema';
 import { differenceInYears } from 'date-fns';
 
@@ -46,11 +46,11 @@ export default function SignupScreen() {
       if (parsed.lastName) formData.append('lastName', parsed.lastName);
       if (parsed.dateOfBirth) formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
       if (photo) {
-        const name = photo.split('/').pop() || 'photo.jpg';
+        const name = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
         formData.append('photo', { uri: photo, name, type: 'image/jpeg' } as any);
       }
 
-      const response = await axios.post(`${API_URL}/auth/register`, formData, {
+      const response = await axios.post(`${API_URL}/auth/signup`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       const { token, user } = response.data;
@@ -96,7 +96,7 @@ export default function SignupScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Inscription</Text>
-      <ImagePickerInput value={photo} onChange={setPhoto} />
+      <PhotoUploader value={photo} onChange={setPhoto} />
       <TextInput
         style={styles.input}
         placeholder="Prénom"
@@ -119,8 +119,8 @@ export default function SignupScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <DatePickerInput value={dateOfBirth} onChange={setDateOfBirth} />
-      <PasswordInput value={password} onChangeText={setPassword} />
+      <DateInput value={dateOfBirth} onChange={setDateOfBirth} />
+      <SecureInput value={password} onChangeText={setPassword} />
       <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
