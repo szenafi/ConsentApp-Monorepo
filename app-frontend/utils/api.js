@@ -63,23 +63,6 @@ export async function login({ email, password }) {
   }
 }
 
-// Inscription utilisateur
-export async function signup({ firstName, lastName, email, password }) {
-  const payload = { firstName, email, password };
-  if (lastName) payload.lastName = lastName;
-  try {
-    const res = await api.post('/auth/signup', payload);
-    return res.data; // { token, user }
-  } catch (error) {
-    if (error.response?.data?.error?.includes('Unique constraint failed')) {
-      throw new Error("Cet email est déjà utilisé. Veuillez en choisir un autre.");
-    } else if (error.response?.data?.message?.includes('validation')) {
-      throw new Error("Certains champs sont manquants ou invalides.");
-    } else {
-      throw new Error(error.response?.data?.message || 'Erreur lors de l’inscription');
-    }
-  }
-}
 
 // Infos utilisateur connecté
 export async function fetchUserInfo(passedToken) {
