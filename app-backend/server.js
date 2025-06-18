@@ -185,6 +185,12 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
     res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
   } catch (error) {
     console.error('Erreur signup:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Erreur de validation', errors: error.errors });
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return res.status(409).json({ message: 'Email already in use' });
+    }
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 });
@@ -217,6 +223,9 @@ app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
     res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
   } catch (error) {
     console.error('Erreur register:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Erreur de validation', errors: error.errors });
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return res.status(409).json({ message: 'Email already in use' });
     }
