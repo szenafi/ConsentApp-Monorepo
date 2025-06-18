@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import axios from 'axios';
+import { api } from '../utils/api';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../context/AuthContext';
-import { API_URL, COLORS, SIZES } from '../constants';
+import { COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
 import PhotoUploader from '../components/forms/PhotoUploader';
 import DateInput from '../components/forms/DateInput';
@@ -47,24 +47,36 @@ export default function SignupScreen() {
         throw new Error('Vous devez avoir au moins 18 ans');
       }
 
-      const formData = new FormData();
-      formData.append('email', parsed.email);
-      formData.append('password', parsed.password);
-      formData.append('firstName', parsed.firstName);
-      if (parsed.lastName) formData.append('lastName', parsed.lastName);
-      if (parsed.dateOfBirth) {
-        formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
-      }
+      let payload: any;
       if (photo) {
+        const formData = new FormData();
+        formData.append('email', parsed.email);
+        formData.append('password', parsed.password);
+        formData.append('firstName', parsed.firstName);
+        if (parsed.lastName) formData.append('lastName', parsed.lastName);
+        if (parsed.dateOfBirth) {
+          formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
+        }
         const name = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
         formData.append('photo', {
           uri: photo,
           name,
           type: 'image/jpeg',
         } as any);
+        payload = formData;
+      } else {
+        payload = {
+          email: parsed.email,
+          password: parsed.password,
+          firstName: parsed.firstName,
+          lastName: parsed.lastName,
+          dateOfBirth: parsed.dateOfBirth
+            ? parsed.dateOfBirth.toISOString()
+            : undefined,
+        };
       }
 
-      const response = await axios.post(`${API_URL}/auth/signup`, formData);
+      const response = await api.post('/auth/signup', payload);
 
       const { token, user } = response.data;
 
@@ -92,9 +104,11 @@ export default function SignupScreen() {
     } catch (error: any) {
       console.error('Erreur lors de l’inscription :', error?.response?.data || error.message);
       const message =
-        error?.response?.status === 409
-          ? 'Email déjà utilisé'
-          : error.message || 'Erreur lors de l’inscription';
+        error.message === 'Network Error'
+          ? "Impossible de contacter le serveur. Vérifiez l'URL EXPO_PUBLIC_API_BASE_URL"
+          : error?.response?.status === 409
+            ? 'Email déjà utilisé'
+            : error.message || 'Erreur lors de l’inscription';
       ToastAndroid.show(message, ToastAndroid.SHORT);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {

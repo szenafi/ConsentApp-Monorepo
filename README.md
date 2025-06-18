@@ -94,10 +94,19 @@ MONGO_URI=<votre-URI-MongoDB>
 JWT_SECRET=<votre-clé-secrète>
 STRIPE_SECRET_KEY=<clé-secrète-stripe>
 
-Frontend (.env dans app-frontend ou directement dans app/config.js selon ton approche)
+Frontend (.env dans app-frontend)
+(un fichier `.env.example` est fourni en référence)
 
-API_URL=http://localhost:5000
-STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
+# Utilisé côté mobile
+# Indiquez l'adresse du backend joignable depuis
+# l'émulateur ou le téléphone. Remplacez <IP> par
+# l'adresse locale de votre ordinateur (localhost ne
+# fonctionne pas sur appareil réel).
+EXPO_PUBLIC_API_BASE_URL=http://<IP>:5000
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
+
+L'endpoint `/api/auth/signup` accepte aussi bien un corps JSON classique
+qu'un `multipart/form-data` lorsqu'une photo est envoyée.
 
 Tests
 
@@ -118,6 +127,10 @@ Certaines requêtes réseau (Lottie/icons) peuvent être bloquées si l’enviro
 assets10.lottiefiles.com
 
 img.icons8.com
+
+En cas d’erreur « Network Error » lors de l’inscription, assurez‑vous que
+`EXPO_PUBLIC_API_BASE_URL` pointe vers une adresse accessible par votre
+émulateur ou votre téléphone.
 
 Auteurs
 

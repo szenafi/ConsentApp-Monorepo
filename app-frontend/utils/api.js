@@ -6,14 +6,12 @@ import { API_URL, API_BASE_URL } from '../constants';
 const api = axios.create({
   baseURL: API_URL,
   timeout: 10000,
-  headers: { 'Content-Type': 'application/json' },
 });
 
 // Instance pour les routes racines (e.g. /test-db)
 const rootApi = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  headers: { 'Content-Type': 'application/json' },
 });
 
 // Intercepteur : injecte le token dans chaque requête API (instance api)
