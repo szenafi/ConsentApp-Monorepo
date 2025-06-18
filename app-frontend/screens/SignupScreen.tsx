@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../context/AuthContext';
 import { API_URL, COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
+import ImagePickerInput from '../components/forms/ImagePickerInput';
+import DatePickerInput from '../components/forms/DatePickerInput';
+import PasswordInput from '../components/forms/PasswordInput';
+import { registerSchema } from '../lib/validation/registerSchema';
 
 export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
@@ -18,11 +25,29 @@ export default function SignupScreen() {
   const handleSignup = async () => {
     setLoading(true);
     try {
-      const payload = { email, password, firstName };
-      if (lastName) payload.lastName = lastName;
+      const parsed = registerSchema.parse({
+        email,
+        password,
+        firstName,
+        lastName,
+        dateOfBirth: dateOfBirth ?? undefined,
+        photo: photo ?? undefined,
+      });
 
-      // 1. Inscription
-      const response = await axios.post(`${API_URL}/auth/signup`, payload);
+      const formData = new FormData();
+      formData.append('email', parsed.email);
+      formData.append('password', parsed.password);
+      formData.append('firstName', parsed.firstName);
+      if (parsed.lastName) formData.append('lastName', parsed.lastName);
+      if (parsed.dateOfBirth) formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
+      if (photo) {
+        const name = photo.split('/').pop() || 'photo.jpg';
+        formData.append('photo', { uri: photo, name, type: 'image/jpeg' } as any);
+      }
+
+      const response = await axios.post(`${API_URL}/auth/signup`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       const { token, user } = response.data;
 
       if (!token || !user) {
@@ -34,30 +59,23 @@ export default function SignupScreen() {
       // 2. Auto-login
       try {
         await login(email, password);
-        Alert.alert('Succès', 'Inscription et connexion réussies !');
+        ToastAndroid.show('Inscription réussie', ToastAndroid.SHORT);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setEmail('');
         setPassword('');
         setFirstName('');
         setLastName('');
         router.replace('/dashboard');
       } catch (loginError) {
-        Alert.alert('Inscription réussie', "Connexion impossible après inscription. Veuillez vous connecter manuellement.");
+        ToastAndroid.show('Inscription ok, connexion impossible', ToastAndroid.SHORT);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         router.replace('/login');
       }
 
     } catch (error) {
       console.error('Erreur lors de l’inscription :', error?.response?.data || error.message);
-      if (error?.response?.data?.error?.includes('Unique constraint failed')) {
-        Alert.alert('Erreur', "Cet email est déjà utilisé. Veuillez en choisir un autre.");
-      } else if (
-        error?.response?.data?.message?.toLowerCase().includes('validation')
-      ) {
-        Alert.alert('Erreur', "Certains champs sont manquants ou invalides.");
-      } else if (error?.response?.data?.message) {
-        Alert.alert('Erreur', error.response.data.message);
-      } else {
-        Alert.alert('Erreur', error.message || 'Erreur lors de l’inscription');
-      }
+      ToastAndroid.show('Erreur lors de l\u2019inscription', ToastAndroid.SHORT);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);
     }
@@ -70,6 +88,7 @@ export default function SignupScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Inscription</Text>
+      <ImagePickerInput value={photo} onChange={setPhoto} />
       <TextInput
         style={styles.input}
         placeholder="Prénom"
@@ -92,13 +111,8 @@ export default function SignupScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <DatePickerInput value={dateOfBirth} onChange={setDateOfBirth} />
+      <PasswordInput value={password} onChangeText={setPassword} />
       <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? 'Inscription...' : 'S’inscrire'}</Text>
       </TouchableOpacity>
@@ -126,16 +140,20 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#fff',
     padding: 12,
-    borderRadius: SIZES.radius,
+    borderRadius: 20,
     marginBottom: SIZES.padding,
     fontFamily: 'Poppins-Regular',
     fontSize: SIZES.fontSmall,
   },
   button: {
     backgroundColor: COLORS.primary,
-    padding: 12,
-    borderRadius: SIZES.radius,
+    padding: 14,
+    borderRadius: 30,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   buttonText: {
     fontFamily: 'Poppins-Bold',

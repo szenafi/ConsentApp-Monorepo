@@ -25,3 +25,4 @@ Thumbs.db
 # Build artifacts (optionnel si tu fais du build)
 dist/
 build/
+uploads/
