@@ -56,7 +56,7 @@ export default function SignupScreen() {
 
       await SecureStore.setItemAsync('authToken', token);
 
-      // 2. Auto-login
+      // Auto-login
       try {
         await login(email, password);
         ToastAndroid.show('Inscription réussie', ToastAndroid.SHORT);
@@ -71,10 +71,9 @@ export default function SignupScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         router.replace('/login');
       }
-
     } catch (error) {
       console.error('Erreur lors de l’inscription :', error?.response?.data || error.message);
-      ToastAndroid.show('Erreur lors de l\u2019inscription', ToastAndroid.SHORT);
+      ToastAndroid.show('Erreur lors de l’inscription', ToastAndroid.SHORT);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);

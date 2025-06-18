@@ -189,6 +189,38 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
   }
 });
 
+// Nouvelle route d'inscription avec upload de photo
+app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
+  try {
+    const data = {
+      email: req.body.email,
+      password: req.body.password,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      dateOfBirth: req.body.dateOfBirth,
+      photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+    };
+    const parsed = signupSchema.parse(data);
+    const hashedPassword = await bcrypt.hash(parsed.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email: parsed.email,
+        password: hashedPassword,
+        firstName: parsed.firstName,
+        lastName: parsed.lastName,
+        dateOfBirth: parsed.dateOfBirth ? new Date(parsed.dateOfBirth) : null,
+        photoUrl: parsed.photoUrl,
+      },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
+    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
+  } catch (error) {
+    console.error('Erreur register:', error);
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+});
+
 app.post('/api/auth/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
