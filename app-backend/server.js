@@ -9,6 +9,9 @@ const { z } = require('zod');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const CryptoJS = require('crypto-js');
 const { OAuth2Client } = require('google-auth-library');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 // Initialisation de l'application et Prisma
 const app = express();
@@ -77,6 +80,19 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
 
 // Middleware JSON pour les autres routes (après le webhook)
 app.use(express.json());
+const uploadDir = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadDir));
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+  }
+});
+const upload = multer({ storage });
 
 // Middleware de validation Zod
 const validate = (schema) => async (req, res, next) => {
@@ -161,6 +177,38 @@ app.post('/api/auth/signup', validate(signupSchema), async (req, res) => {
     res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
   } catch (error) {
     console.error('Erreur signup:', error);
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+});
+
+// Nouvelle route d'inscription avec upload de photo
+app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
+  try {
+    const data = {
+      email: req.body.email,
+      password: req.body.password,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      dateOfBirth: req.body.dateOfBirth,
+      photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+    };
+    const parsed = signupSchema.parse(data);
+    const hashedPassword = await bcrypt.hash(parsed.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email: parsed.email,
+        password: hashedPassword,
+        firstName: parsed.firstName,
+        lastName: parsed.lastName,
+        dateOfBirth: parsed.dateOfBirth ? new Date(parsed.dateOfBirth) : null,
+        photoUrl: parsed.photoUrl,
+      },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
+    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
+  } catch (error) {
+    console.error('Erreur register:', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 });
