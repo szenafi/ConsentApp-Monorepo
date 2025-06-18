@@ -79,9 +79,14 @@ export default function SignupScreen() {
       }
 
       const response = await api.post('/auth/signup', payload, {
-        // Laisser Axios gérer automatiquement l'en-tête multipart pour FormData
-        // (inclus le boundary). Si aucune photo n'est envoyée, on précise JSON.
-        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+        // Lorsque l'on envoie un fichier depuis React Native, Axios ne renseigne
+        // pas toujours correctement l'en-tête. On force donc multipart lorsque
+        // une photo est présente pour s'assurer que Multer puisse parser la
+        // requête côté backend.
+        headers: isFormData
+          ? { 'Content-Type': 'multipart/form-data' }
+          : { 'Content-Type': 'application/json' },
+
       });
 
       const { token, user } = response.data;
