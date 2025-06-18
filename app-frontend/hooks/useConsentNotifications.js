@@ -8,12 +8,10 @@ import SafeLottieView from '../components/SafeLottieView';
 import { useNotificationSettings } from '../context/NotificationSettingsContext';
 import { ConsentMessages } from '../lib/notifications/messages';
 
-const SUCCESS_SOUND_URL =
-  'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
-const ERROR_SOUND_URL =
-  'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
+const SUCCESS_SOUND_URL = 'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
+const ERROR_SOUND_URL = 'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
 
-const ConsentNotificationContext = createContext();
+const ConsentNotificationContext = createContext(null);
 
 export const ConsentNotificationProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
@@ -60,17 +58,20 @@ export const useConsentNotifications = (consent, currentUserId, actions = {}) =>
   useEffect(() => {
     if (!consent || !consent.status) return;
     if (prevStatus.current === consent.status) return;
+
     const partnerName =
       currentUserId === consent.userId
         ? consent.partner?.firstName || 'ton partenaire'
         : consent.user?.firstName || 'ce contact';
 
     if (timerRef.current) clearTimeout(timerRef.current);
+
     timerRef.current = setTimeout(() => {
       switch (consent.status) {
         case 'DRAFT':
           triggerToast(ConsentMessages.draft());
           break;
+
         case 'PENDING':
           if (currentUserId === consent.userId) {
             triggerBanner(ConsentMessages.pendingSent(partnerName));
@@ -82,25 +83,30 @@ export const useConsentNotifications = (consent, currentUserId, actions = {}) =>
             });
           }
           break;
+
         case 'ACCEPTED':
           triggerToast(ConsentMessages.accepted(partnerName));
           if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           playSound({ uri: SUCCESS_SOUND_URL });
           setCelebrate(true);
           break;
+
         case 'REFUSED':
           triggerToast(ConsentMessages.refused(partnerName));
           if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           playSound({ uri: ERROR_SOUND_URL });
           break;
+
         case 'REVOKED':
           triggerToast(ConsentMessages.revoked(partnerName));
           if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           break;
+
         case 'EXPIRED':
           triggerBanner(ConsentMessages.expired(partnerName));
           break;
       }
+
       prevStatus.current = consent.status;
     }, 300);
 
@@ -113,6 +119,7 @@ export const useConsentNotifications = (consent, currentUserId, actions = {}) =>
     setToast(null);
     setTimeout(() => setToast(msg), 10);
   };
+
   const triggerBanner = (msg) => {
     setBanner(null);
     setTimeout(() => setBanner(msg), 10);
@@ -124,6 +131,8 @@ export const useConsentNotifications = (consent, currentUserId, actions = {}) =>
       const { sound } = await Audio.Sound.createAsync(module);
       await sound.playAsync();
       setTimeout(() => sound.unloadAsync(), 2000);
-    } catch {}
+    } catch (err) {
+      console.warn('Erreur de lecture sonore :', err);
+    }
   };
 };
