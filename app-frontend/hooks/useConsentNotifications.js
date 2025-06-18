@@ -3,27 +3,30 @@ import * as Haptics from 'expo-haptics';
 import { Audio } from 'expo-av';
 import ConsentToast from '../components/notifications/ConsentToast';
 import ConsentModal from '../components/notifications/ConsentModal';
+import NotificationBanner from '../components/notifications/NotificationBanner';
+import SafeLottieView from '../components/SafeLottieView';
 import { useNotificationSettings } from '../context/NotificationSettingsContext';
 import { ConsentMessages } from '../lib/notifications/messages';
 
-const SUCCESS_SOUND_URL =
-  'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
-const ERROR_SOUND_URL =
-  'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
+const SUCCESS_SOUND_URL = 'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
+const ERROR_SOUND_URL = 'https://raw.githubusercontent.com/anars/blank-audio/master/1-second-of-silence.mp3';
 
-const ConsentNotificationContext = createContext();
+const ConsentNotificationContext = createContext(null);
 
 export const ConsentNotificationProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const [modal, setModal] = useState(null);
+  const [banner, setBanner] = useState(null);
+  const [celebrate, setCelebrate] = useState(false);
 
   const hideToast = () => setToast(null);
   const hideModal = () => setModal(null);
 
   return (
-    <ConsentNotificationContext.Provider value={{ setToast, setModal }}>
+    <ConsentNotificationContext.Provider value={{ setToast, setModal, setBanner, setCelebrate }}>
       {children}
       {toast && <ConsentToast message={toast} onHide={hideToast} />}
+      {banner && <NotificationBanner message={banner} onHide={() => setBanner(null)} />}
       {modal && (
         <ConsentModal
           visible={!!modal}
@@ -33,28 +36,40 @@ export const ConsentNotificationProvider = ({ children }) => {
           onClose={hideModal}
         />
       )}
+      {celebrate && (
+        <SafeLottieView
+          source={require('../assets/animations/confetti.json')}
+          autoPlay
+          loop={false}
+          onAnimationFinish={() => setCelebrate(false)}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+      )}
     </ConsentNotificationContext.Provider>
   );
 };
 
 export const useConsentNotifications = (consent, currentUserId, actions = {}) => {
   const { silent } = useNotificationSettings();
-  const { setToast, setModal } = useContext(ConsentNotificationContext);
+  const { setToast, setModal, setBanner, setCelebrate } = useContext(ConsentNotificationContext);
   const prevStatus = useRef(consent?.status);
 
   useEffect(() => {
     if (!consent || !consent.status) return;
     if (prevStatus.current === consent.status) return;
+
     const partnerName = currentUserId === consent.userId
       ? consent.partner?.firstName || 'ton partenaire'
       : consent.user?.firstName || 'ce contact';
+
     switch (consent.status) {
       case 'DRAFT':
         triggerToast(ConsentMessages.draft());
         break;
+
       case 'PENDING':
         if (currentUserId === consent.userId) {
-          triggerToast(ConsentMessages.pendingSent(partnerName));
+          triggerBanner(ConsentMessages.pendingSent(partnerName));
         } else if (currentUserId === consent.partnerId) {
           setModal({
             message: ConsentMessages.pendingReceived(partnerName),
@@ -63,21 +78,26 @@ export const useConsentNotifications = (consent, currentUserId, actions = {}) =>
           });
         }
         break;
+
       case 'ACCEPTED':
         triggerToast(ConsentMessages.accepted(partnerName));
         if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         playSound({ uri: SUCCESS_SOUND_URL });
+        setCelebrate(true);
         break;
+
       case 'REFUSED':
         triggerToast(ConsentMessages.refused(partnerName));
         if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         playSound({ uri: ERROR_SOUND_URL });
         break;
     }
+
     prevStatus.current = consent.status;
   }, [consent?.status]);
 
   const triggerToast = (msg) => setToast(msg);
+  const triggerBanner = (msg) => setBanner(msg);
 
   const playSound = async (module) => {
     if (silent) return;
@@ -85,6 +105,8 @@ export const useConsentNotifications = (consent, currentUserId, actions = {}) =>
       const { sound } = await Audio.Sound.createAsync(module);
       await sound.playAsync();
       setTimeout(() => sound.unloadAsync(), 2000);
-    } catch {}
+    } catch (err) {
+      console.warn('Erreur de lecture sonore :', err);
+    }
   };
 };

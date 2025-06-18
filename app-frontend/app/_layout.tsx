@@ -3,6 +3,7 @@
 import { AuthProvider } from '../context/AuthContext';
 import { NotificationSettingsProvider } from '../context/NotificationSettingsContext';
 import { ConsentNotificationProvider } from '../hooks/useConsentNotifications';
+import ConsentStatusWatcher from '../hooks/useConsentStatusWatcher';
 import { Slot } from 'expo-router';
 
 export default function RootLayout() {
@@ -10,7 +11,9 @@ export default function RootLayout() {
     <AuthProvider>
       <NotificationSettingsProvider>
         <ConsentNotificationProvider>
-          <Slot />
+          <ConsentStatusWatcher>
+            <Slot />
+          </ConsentStatusWatcher>
         </ConsentNotificationProvider>
       </NotificationSettingsProvider>
     </AuthProvider>

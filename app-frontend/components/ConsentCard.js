@@ -73,7 +73,9 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const valid = isConsentValid(consent);
   const isInitiator = valid && consent.userId === userId;
-  useConsentNotifications(valid ? consent : null, userId, { onAccept: handleAccept, onRefuse: handleRefuse });
+
+  useConsentNotifications(valid ? consent : null, userId, { onAccept, onRefuse });
+
   useEffect(() => {
     if (!valid) return;
     Animated.timing(fadeAnim, {
@@ -82,6 +84,7 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
       useNativeDriver: true,
     }).start();
   }, [fadeAnim, valid]);
+
   if (!valid) {
     return (
       <View style={{ padding: 16, backgroundColor: '#fee2e2', borderRadius: 10, margin: 8 }}>
@@ -90,6 +93,7 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
       </View>
     );
   }
+
   const isPartner = consent.partnerId === userId;
   const statusColor =
     consent.status === 'PENDING' ? '#F59E42' :
@@ -114,7 +118,6 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
   const userLabel = safeText(getAvatarLabel(isInitiator, consent.user, 'Moi'), 'userLabel');
   const partnerLabel = safeText(getAvatarLabel(isPartner, consent.partner, 'Partenaire'), 'partnerLabel');
 
-
   function handleAccept() {
     LocalAuthentication.authenticateAsync({ promptMessage: 'Validez avec votre empreinte digitale' })
       .then(result => {
@@ -135,9 +138,7 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
       .catch(err => alert(err.message || 'Erreur lors du refus du consentement'));
   }
 
-
   return (
-    <>
     <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
         {!!consent.emoji && <Text style={styles.emoji}>{safeText(consent.emoji)}</Text>}
@@ -183,7 +184,6 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
         </View>
       )}
     </Animated.View>
-    </>
   );
 }
 
