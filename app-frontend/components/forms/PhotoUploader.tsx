@@ -12,7 +12,7 @@ interface PhotoUploaderProps {
 export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   const [imageUri, setImageUri] = useState<string | null>(value ?? null);
 
-  // Sync avec la valeur parent
+  // Garder l'aperçu local synchronisé avec la valeur parent
   useEffect(() => {
     setImageUri(value ?? null);
   }, [value]);

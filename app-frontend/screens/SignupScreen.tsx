@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ToastAndroid,
+  ActivityIndicator,
+} from 'react-native';
 import * as Haptics from 'expo-haptics';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
@@ -44,7 +52,9 @@ export default function SignupScreen() {
       formData.append('password', parsed.password);
       formData.append('firstName', parsed.firstName);
       if (parsed.lastName) formData.append('lastName', parsed.lastName);
-      if (parsed.dateOfBirth) formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
+      if (parsed.dateOfBirth) {
+        formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
+      }
       if (photo) {
         const name = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
         formData.append('photo', {
