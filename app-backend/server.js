@@ -78,8 +78,9 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
   }
 });
 
-// Middleware JSON pour les autres routes (après le webhook)
+// Middleware JSON et urlencoded pour les autres routes (après le webhook)
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 const uploadDir = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadDir));
 const storage = multer.diskStorage({

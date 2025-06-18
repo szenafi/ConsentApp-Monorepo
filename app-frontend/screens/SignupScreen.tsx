@@ -47,21 +47,33 @@ export default function SignupScreen() {
         throw new Error('Vous devez avoir au moins 18 ans');
       }
 
-      const formData = new FormData();
-      formData.append('email', parsed.email);
-      formData.append('password', parsed.password);
-      formData.append('firstName', parsed.firstName);
-      if (parsed.lastName) formData.append('lastName', parsed.lastName);
-      if (parsed.dateOfBirth) {
-        formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
-      }
+      let payload: any;
       if (photo) {
+        const formData = new FormData();
+        formData.append('email', parsed.email);
+        formData.append('password', parsed.password);
+        formData.append('firstName', parsed.firstName);
+        if (parsed.lastName) formData.append('lastName', parsed.lastName);
+        if (parsed.dateOfBirth) {
+          formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
+        }
         const name = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
         formData.append('photo', {
           uri: photo,
           name,
           type: 'image/jpeg',
         } as any);
+        payload = formData;
+      } else {
+        payload = {
+          email: parsed.email,
+          password: parsed.password,
+          firstName: parsed.firstName,
+          lastName: parsed.lastName,
+          dateOfBirth: parsed.dateOfBirth
+            ? parsed.dateOfBirth.toISOString()
+            : undefined,
+        };
       }
 
 
