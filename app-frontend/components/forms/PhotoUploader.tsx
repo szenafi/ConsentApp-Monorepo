@@ -12,7 +12,7 @@ interface PhotoUploaderProps {
 export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   const [imageUri, setImageUri] = useState<string | null>(value ?? null);
 
-  // keep local preview in sync when parent resets the value
+  // Sync with parent when reset
   useEffect(() => {
     setImageUri(value ?? null);
   }, [value]);
@@ -22,23 +22,23 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
       source === 'camera'
         ? await ImagePicker.requestCameraPermissionsAsync()
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
     if (!permission.granted) return;
 
     const pickerOptions = {
       mediaTypes:
-        // Expo SDK 54 renamed MediaTypeOptions to MediaType
-        (ImagePicker as any).MediaType?.Images ??
-        ImagePicker.MediaTypeOptions.Images,
+        (ImagePicker as any).MediaType?.Images ?? ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1] as [number, number],
       quality: 0.8,
     };
+
     const result =
       source === 'camera'
         ? await ImagePicker.launchCameraAsync(pickerOptions)
         : await ImagePicker.launchImageLibraryAsync(pickerOptions);
 
-    if (!result.canceled) {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
       const uri = await processImage(result.assets[0].uri);
       setImageUri(uri);
       onChange(uri);
@@ -46,11 +46,15 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   };
 
   const processImage = async (uri: string): Promise<string> => {
-    const manip = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 600 } }], {
-      compress: 0.8,
-      format: ImageManipulator.SaveFormat.JPEG,
-    });
-    return manip.uri;
+    const manipResult = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 600 } }],
+      {
+        compress: 0.8,
+        format: ImageManipulator.SaveFormat.JPEG,
+      }
+    );
+    return manipResult.uri;
   };
 
   const handlePress = () => {
@@ -64,7 +68,11 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.preview} onPress={handlePress}>
-        {imageUri ? <Image source={{ uri: imageUri }} style={styles.image} /> : <Text style={styles.placeholder}>Choisir une photo</Text>}
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.image} />
+        ) : (
+          <Text style={styles.placeholder}>Choisir une photo</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -88,5 +96,9 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
   },
-  placeholder: { color: COLORS.text },
+  placeholder: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+  },
 });
