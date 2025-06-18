@@ -100,6 +100,9 @@ Frontend (.env dans app-frontend)
 EXPO_PUBLIC_API_BASE_URL=http://localhost:5000
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
 
+L'endpoint `/api/auth/signup` accepte aussi bien un corps JSON classique
+qu'un `multipart/form-data` lorsqu'une photo est envoyée.
+
 Tests
 
 À mettre en place prochainement
