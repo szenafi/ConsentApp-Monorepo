@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ToastAndroid,
+  ActivityIndicator,
+} from 'react-native';
 import * as Haptics from 'expo-haptics';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
@@ -44,13 +52,22 @@ export default function SignupScreen() {
       formData.append('password', parsed.password);
       formData.append('firstName', parsed.firstName);
       if (parsed.lastName) formData.append('lastName', parsed.lastName);
-      if (parsed.dateOfBirth) formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
+      if (parsed.dateOfBirth) {
+        formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
+      }
       if (photo) {
         const name = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
-        formData.append('photo', { uri: photo, name, type: 'image/jpeg' } as any);
+        formData.append('photo', {
+          uri: photo,
+          name,
+          type: 'image/jpeg',
+        } as any);
       }
 
-      const response = await axios.post(`${API_URL}/auth/signup`, formData);
+      const response = await axios.post(`${API_URL}/auth/signup`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
       const { token, user } = response.data;
 
       if (!token || !user) {
@@ -59,7 +76,7 @@ export default function SignupScreen() {
 
       await SecureStore.setItemAsync('authToken', token);
 
-      // Auto-login
+      // Auto-login après inscription
       try {
         await login(email, password);
         ToastAndroid.show('Inscription réussie', ToastAndroid.SHORT);
@@ -74,7 +91,7 @@ export default function SignupScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         router.replace('/login');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de l’inscription :', error?.response?.data || error.message);
       const message =
         error?.response?.status === 409
