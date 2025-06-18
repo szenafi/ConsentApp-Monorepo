@@ -46,7 +46,7 @@ export default function SignupScreen() {
       if (parsed.lastName) formData.append('lastName', parsed.lastName);
       if (parsed.dateOfBirth) formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
       if (photo) {
-        const name = photo.split('/').pop() || 'photo.jpg';
+        const name = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
         formData.append('photo', { uri: photo, name, type: 'image/jpeg' } as any);
       }
 
