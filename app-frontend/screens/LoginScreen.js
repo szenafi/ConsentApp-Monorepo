@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
+import PasswordInput from '../components/forms/PasswordInput';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -15,17 +17,15 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(email, password);
-      Alert.alert('Succès', 'Connexion réussie !');
+      ToastAndroid.show('Connexion réussie', ToastAndroid.SHORT);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setEmail('');
       setPassword('');
       router.replace('/dashboard'); // <-- DÉCOMMENTE ou AJOUTE cette ligne
     } catch (error) {
       console.error('Erreur lors de la connexion :', error.message || error);
-      if (error.message && error.message.toLowerCase().includes('invalid credentials')) {
-        Alert.alert('Erreur', 'Identifiants incorrects. Veuillez vérifier votre email et mot de passe.');
-      } else {
-        Alert.alert('Erreur', error.message || 'Erreur lors de la connexion');
-      }
+      ToastAndroid.show('Identifiants invalides', ToastAndroid.SHORT);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);
     }
@@ -46,13 +46,7 @@ export default function LoginScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <PasswordInput value={password} onChangeText={setPassword} />
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? 'Connexion...' : 'Se connecter'}</Text>
       </TouchableOpacity>
@@ -80,16 +74,20 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#fff',
     padding: 12,
-    borderRadius: SIZES.radius,
+    borderRadius: 20,
     marginBottom: SIZES.padding,
     fontFamily: 'Poppins-Regular',
     fontSize: SIZES.fontSmall,
   },
   button: {
     backgroundColor: COLORS.primary,
-    padding: 12,
-    borderRadius: SIZES.radius,
+    padding: 14,
+    borderRadius: 30,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   buttonText: {
     fontFamily: 'Poppins-Bold',
