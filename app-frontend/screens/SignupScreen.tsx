@@ -10,6 +10,7 @@ import ImagePickerInput from '../components/forms/ImagePickerInput';
 import DatePickerInput from '../components/forms/DatePickerInput';
 import PasswordInput from '../components/forms/PasswordInput';
 import { registerSchema } from '../lib/validation/registerSchema';
+import { differenceInYears } from 'date-fns';
 
 export default function SignupScreen() {
   const [email, setEmail] = useState('');
@@ -33,6 +34,10 @@ export default function SignupScreen() {
         dateOfBirth: dateOfBirth ?? undefined,
         photo: photo ?? undefined,
       });
+
+      if (parsed.dateOfBirth && differenceInYears(new Date(), parsed.dateOfBirth) < 18) {
+        throw new Error('Vous devez avoir au moins 18 ans');
+      }
 
       const formData = new FormData();
       formData.append('email', parsed.email);
@@ -71,7 +76,11 @@ export default function SignupScreen() {
       }
     } catch (error) {
       console.error('Erreur lors de l’inscription :', error?.response?.data || error.message);
-      ToastAndroid.show('Erreur lors de l’inscription', ToastAndroid.SHORT);
+      const message =
+        error?.response?.status === 409
+          ? 'Email déjà utilisé'
+          : error.message || 'Erreur lors de l’inscription';
+      ToastAndroid.show(message, ToastAndroid.SHORT);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);
