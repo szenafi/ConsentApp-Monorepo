@@ -156,33 +156,8 @@ const encrypt = (data) => CryptoJS.AES.encrypt(data, process.env.AES_SECRET_KEY)
 const decrypt = (ciphertext) => CryptoJS.AES.decrypt(ciphertext, process.env.AES_SECRET_KEY).toString(CryptoJS.enc.Utf8);
 
 // Routes d'authentification
-app.post('/api/auth/signup', validate(signupSchema), async (req, res) => {
-  try {
-    console.log('Tentative signup avec:', req.body);
-    const { email, password, firstName, lastName, dateOfBirth, photoUrl } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        photoUrl,
-      },
-      select: { id: true, email: true, firstName: true, lastName: true },
-    });
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log('Signup réussi pour:', email);
-    res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
-  } catch (error) {
-    console.error('Erreur signup:', error);
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
-  }
-});
-
-// Nouvelle route d'inscription avec upload de photo
-app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
+// Route d'inscription acceptant l'upload optionnel d'une photo de profil
+app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
   try {
     const data = {
       email: req.body.email,
@@ -206,9 +181,10 @@ app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
       select: { id: true, email: true, firstName: true, lastName: true },
     });
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    console.log('Signup réussi pour:', parsed.email);
     res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
   } catch (error) {
-    console.error('Erreur register:', error);
+    console.error('Erreur signup:', error);
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 });
