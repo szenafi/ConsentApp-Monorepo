@@ -69,8 +69,17 @@ function isConsentValid(consent) {
 }
 
 export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const valid = isConsentValid(consent);
   const isInitiator = valid && consent.userId === userId;
+  useEffect(() => {
+    if (!valid) return;
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim, valid]);
   if (!valid) {
     return (
       <View style={{ padding: 16, backgroundColor: '#fee2e2', borderRadius: 10, margin: 8 }}>
@@ -103,6 +112,7 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
   const userLabel = safeText(getAvatarLabel(isInitiator, consent.user, 'Moi'), 'userLabel');
   const partnerLabel = safeText(getAvatarLabel(isPartner, consent.partner, 'Partenaire'), 'partnerLabel');
 
+
   function handleAccept() {
     LocalAuthentication.authenticateAsync({ promptMessage: 'Validez avec votre empreinte digitale' })
       .then(result => {
@@ -123,15 +133,6 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
       .catch(err => alert(err.message || 'Erreur lors du refus du consentement'));
   }
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 400,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
 
   return (
     <>
