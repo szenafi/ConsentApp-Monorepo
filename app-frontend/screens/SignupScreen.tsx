@@ -76,7 +76,12 @@ export default function SignupScreen() {
         };
       }
 
-      const response = await api.post('/auth/signup', payload);
+
+
+
+      const response = await api.post('/auth/signup', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
       const { token, user } = response.data;
 

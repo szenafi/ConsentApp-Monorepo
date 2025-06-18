@@ -95,14 +95,10 @@ JWT_SECRET=<votre-clé-secrète>
 STRIPE_SECRET_KEY=<clé-secrète-stripe>
 
 Frontend (.env dans app-frontend)
-(un fichier `.env.example` est fourni en référence)
+
 
 # Utilisé côté mobile
-# Indiquez l'adresse du backend joignable depuis
-# l'émulateur ou le téléphone. Remplacez <IP> par
-# l'adresse locale de votre ordinateur (localhost ne
-# fonctionne pas sur appareil réel).
-EXPO_PUBLIC_API_BASE_URL=http://<IP>:5000
+EXPO_PUBLIC_API_BASE_URL=http://localhost:5000
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
 
 L'endpoint `/api/auth/signup` accepte aussi bien un corps JSON classique
