@@ -79,9 +79,9 @@ export default function SignupScreen() {
       }
 
       const response = await api.post('/auth/signup', payload, {
-        headers: isFormData
-          ? { 'Content-Type': 'multipart/form-data' }
-          : { 'Content-Type': 'application/json' },
+        // Laisser Axios gérer automatiquement l'en-tête multipart pour FormData
+        // (inclus le boundary). Si aucune photo n'est envoyée, on précise JSON.
+        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
       });
 
       const { token, user } = response.data;
