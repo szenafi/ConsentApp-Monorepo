@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import axios from 'axios';
+import { api } from '../utils/api';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../context/AuthContext';
-import { API_URL, COLORS, SIZES } from '../constants';
+import { COLORS, SIZES } from '../constants';
 import { useRouter } from 'expo-router';
 import PhotoUploader from '../components/forms/PhotoUploader';
 import DateInput from '../components/forms/DateInput';
@@ -64,7 +64,9 @@ export default function SignupScreen() {
         } as any);
       }
 
-      const response = await axios.post(`${API_URL}/auth/signup`, formData);
+      const response = await api.post('/auth/signup', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
       const { token, user } = response.data;
 

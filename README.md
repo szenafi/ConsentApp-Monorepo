@@ -94,10 +94,11 @@ MONGO_URI=<votre-URI-MongoDB>
 JWT_SECRET=<votre-clé-secrète>
 STRIPE_SECRET_KEY=<clé-secrète-stripe>
 
-Frontend (.env dans app-frontend ou directement dans app/config.js selon ton approche)
+Frontend (.env dans app-frontend)
 
-API_URL=http://localhost:5000
-STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
+# Utilisé côté mobile
+EXPO_PUBLIC_API_BASE_URL=http://localhost:5000
+EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
 
 Tests
 
