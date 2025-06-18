@@ -160,9 +160,23 @@ const decrypt = (ciphertext) => CryptoJS.AES.decrypt(ciphertext, process.env.AES
 // Route d'inscription acceptant l'upload optionnel d'une photo de profil.
 // Accepte également des données JSON classiques pour une meilleure
 // compatibilité avec d'anciennes versions du frontend.
+// Problème principal : l'erreur Zod indique que `email` et `password` sont undefined.
+// Le code backend est bien écrit pour accepter du `multipart/form-data`, donc l'erreur vient du frontend.
+// Cependant, voici quelques ajustements de robustesse à appliquer au backend.
+
+// Correction recommandée : ajout d'une vérification plus stricte de la présence des champs requis 
+// avant la validation Zod (optionnel mais améliore les logs)
+
+// --- MODIFICATION LÀ OÙ SE TROUVE LA ROUTE POST /api/auth/signup ---
+
 app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
   try {
     const isMultipart = req.is('multipart/form-data');
+
+    // Ajout d'une trace de debug pour les cas réels
+    console.log('Corps de la requête signup (req.body):', req.body);
+    console.log('Fichier (req.file):', req.file);
+
     const data = isMultipart
       ? {
           email: req.body.email,
@@ -173,8 +187,22 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
           photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
         }
       : req.body;
+
+    // Ajout de vérification avant validation Zod
+    if (!data.email || !data.password) {
+      console.error('Champs requis manquants:', data);
+      return res.status(400).json({
+        message: 'Champs requis manquants',
+        errors: [
+          !data.email ? { path: ['email'], message: 'Requis' } : null,
+          !data.password ? { path: ['password'], message: 'Requis' } : null,
+        ].filter(Boolean),
+      });
+    }
+
     const parsed = signupSchema.parse(data);
     const hashedPassword = await bcrypt.hash(parsed.password, 10);
+
     const user = await prisma.user.create({
       data: {
         email: parsed.email,
@@ -186,20 +214,32 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
       },
       select: { id: true, email: true, firstName: true, lastName: true },
     });
+
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log('Signup réussi pour:', parsed.email);
-    res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
+    console.log('Inscription réussie pour:', parsed.email);
+
+    res.status(201).json({
+      token,
+      user: {
+        ...user,
+        firstName: user.firstName ?? '',
+        lastName: user.lastName ?? '',
+      },
+    });
   } catch (error) {
     console.error('Erreur signup:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Erreur de validation', errors: error.errors });
     }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      return res.status(409).json({ message: 'Email already in use' });
+      return res.status(409).json({ message: 'Email déjà utilisé' });
     }
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 });
+
+// --- FIN DE LA MODIFICATION ---
+
 
 // Nouvelle route d'inscription avec upload de photo
 app.post('/api/auth/register', upload.single('photo'), async (req, res) => {

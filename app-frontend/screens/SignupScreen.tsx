@@ -48,6 +48,7 @@ export default function SignupScreen() {
       }
 
       let payload: any;
+
       if (photo) {
         const formData = new FormData();
         formData.append('email', parsed.email);
@@ -76,11 +77,10 @@ export default function SignupScreen() {
         };
       }
 
-
-
-
-      const response = await api.post('/auth/signup', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const response = await api.post('/auth/signup', payload, {
+        headers: payload instanceof FormData
+          ? { 'Content-Type': 'multipart/form-data' }
+          : { 'Content-Type': 'application/json' },
       });
 
       const { token, user } = response.data;
@@ -91,7 +91,6 @@ export default function SignupScreen() {
 
       await SecureStore.setItemAsync('authToken', token);
 
-      // Auto-login après inscription
       try {
         await login(email, password);
         ToastAndroid.show('Inscription réussie', ToastAndroid.SHORT);
