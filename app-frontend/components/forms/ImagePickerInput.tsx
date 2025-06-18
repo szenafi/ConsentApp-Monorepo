@@ -1,4 +1,3 @@
-// ✅ Fichier 2 : ImagePickerInput.tsx
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Image, StyleSheet, Text, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -25,7 +24,7 @@ export default function ImagePickerInput({ value, onChange }: ImagePickerInputPr
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -41,7 +40,7 @@ export default function ImagePickerInput({ value, onChange }: ImagePickerInputPr
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
