@@ -1,3 +1,4 @@
+// ✅ Fichier 1 : DatePickerInput.tsx
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Text, Platform, StyleSheet } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
