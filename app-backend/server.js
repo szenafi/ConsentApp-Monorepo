@@ -173,10 +173,6 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
   try {
     const isMultipart = req.is('multipart/form-data');
 
-    // Ajout d'une trace de debug pour les cas réels
-    console.log('Corps de la requête signup (req.body):', req.body);
-    console.log('Fichier (req.file):', req.file);
-
     const data = isMultipart
       ? {
           email: req.body.email,
@@ -188,9 +184,7 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
         }
       : req.body;
 
-    // Ajout de vérification avant validation Zod
     if (!data.email || !data.password) {
-      console.error('Champs requis manquants:', data);
       return res.status(400).json({
         message: 'Champs requis manquants',
         errors: [
@@ -215,8 +209,11 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
       select: { id: true, email: true, firstName: true, lastName: true },
     });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log('Inscription réussie pour:', parsed.email);
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.status(201).json({
       token,
@@ -227,7 +224,6 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Erreur signup:', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Erreur de validation', errors: error.errors });
     }
