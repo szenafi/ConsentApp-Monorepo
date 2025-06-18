@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ActivityIndicator } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
@@ -45,9 +45,7 @@ export default function SignupScreen() {
         formData.append('photo', { uri: photo, name, type: 'image/jpeg' } as any);
       }
 
-      const response = await axios.post(`${API_URL}/auth/signup`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await axios.post(`${API_URL}/auth/register`, formData);
       const { token, user } = response.data;
 
       if (!token || !user) {
@@ -113,7 +111,11 @@ export default function SignupScreen() {
       <DatePickerInput value={dateOfBirth} onChange={setDateOfBirth} />
       <PasswordInput value={password} onChangeText={setPassword} />
       <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Inscription...' : 'S’inscrire'}</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>S’inscrire</Text>
+        )}
       </TouchableOpacity>
       <TouchableOpacity onPress={handleLoginNavigation}>
         <Text style={styles.loginText}>Déjà un compte ? Se connecter</Text>
