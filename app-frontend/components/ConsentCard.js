@@ -74,6 +74,7 @@ export default function ConsentCard({ consent, userId, onAccept, onRefuse }) {
   const valid = isConsentValid(consent);
   const isInitiator = valid && consent.userId === userId;
 
+  // Intégration du hook de notification
   useConsentNotifications(valid ? consent : null, userId, { onAccept, onRefuse });
 
   useEffect(() => {

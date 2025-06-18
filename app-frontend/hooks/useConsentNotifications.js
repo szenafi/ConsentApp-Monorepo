@@ -53,51 +53,77 @@ export const useConsentNotifications = (consent, currentUserId, actions = {}) =>
   const { silent } = useNotificationSettings();
   const { setToast, setModal, setBanner, setCelebrate } = useContext(ConsentNotificationContext);
   const prevStatus = useRef(consent?.status);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     if (!consent || !consent.status) return;
     if (prevStatus.current === consent.status) return;
 
-    const partnerName = currentUserId === consent.userId
-      ? consent.partner?.firstName || 'ton partenaire'
-      : consent.user?.firstName || 'ce contact';
+    const partnerName =
+      currentUserId === consent.userId
+        ? consent.partner?.firstName || 'ton partenaire'
+        : consent.user?.firstName || 'ce contact';
 
-    switch (consent.status) {
-      case 'DRAFT':
-        triggerToast(ConsentMessages.draft());
-        break;
+    if (timerRef.current) clearTimeout(timerRef.current);
 
-      case 'PENDING':
-        if (currentUserId === consent.userId) {
-          triggerBanner(ConsentMessages.pendingSent(partnerName));
-        } else if (currentUserId === consent.partnerId) {
-          setModal({
-            message: ConsentMessages.pendingReceived(partnerName),
-            onAccept: actions.onAccept,
-            onRefuse: actions.onRefuse,
-          });
-        }
-        break;
+    timerRef.current = setTimeout(() => {
+      switch (consent.status) {
+        case 'DRAFT':
+          triggerToast(ConsentMessages.draft());
+          break;
 
-      case 'ACCEPTED':
-        triggerToast(ConsentMessages.accepted(partnerName));
-        if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        playSound({ uri: SUCCESS_SOUND_URL });
-        setCelebrate(true);
-        break;
+        case 'PENDING':
+          if (currentUserId === consent.userId) {
+            triggerBanner(ConsentMessages.pendingSent(partnerName));
+          } else if (currentUserId === consent.partnerId) {
+            setModal({
+              message: ConsentMessages.pendingReceived(partnerName),
+              onAccept: actions.onAccept,
+              onRefuse: actions.onRefuse,
+            });
+          }
+          break;
 
-      case 'REFUSED':
-        triggerToast(ConsentMessages.refused(partnerName));
-        if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        playSound({ uri: ERROR_SOUND_URL });
-        break;
-    }
+        case 'ACCEPTED':
+          triggerToast(ConsentMessages.accepted(partnerName));
+          if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          playSound({ uri: SUCCESS_SOUND_URL });
+          setCelebrate(true);
+          break;
 
-    prevStatus.current = consent.status;
+        case 'REFUSED':
+          triggerToast(ConsentMessages.refused(partnerName));
+          if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          playSound({ uri: ERROR_SOUND_URL });
+          break;
+
+        case 'REVOKED':
+          triggerToast(ConsentMessages.revoked(partnerName));
+          if (!silent) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          break;
+
+        case 'EXPIRED':
+          triggerBanner(ConsentMessages.expired(partnerName));
+          break;
+      }
+
+      prevStatus.current = consent.status;
+    }, 300);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [consent?.status]);
 
-  const triggerToast = (msg) => setToast(msg);
-  const triggerBanner = (msg) => setBanner(msg);
+  const triggerToast = (msg) => {
+    setToast(null);
+    setTimeout(() => setToast(msg), 10);
+  };
+
+  const triggerBanner = (msg) => {
+    setBanner(null);
+    setTimeout(() => setBanner(msg), 10);
+  };
 
   const playSound = async (module) => {
     if (silent) return;
