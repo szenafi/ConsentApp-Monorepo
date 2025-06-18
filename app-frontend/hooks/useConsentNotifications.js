@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import * as Haptics from 'expo-haptics';
-import { Audio } from 'expo-av';
+import { Audio } from 'expo-audio';
 import ConsentToast from '../components/notifications/ConsentToast';
 import ConsentModal from '../components/notifications/ConsentModal';
 import NotificationBanner from '../components/notifications/NotificationBanner';
