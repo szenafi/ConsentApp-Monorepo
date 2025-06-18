@@ -64,9 +64,7 @@ export default function SignupScreen() {
         } as any);
       }
 
-      const response = await axios.post(`${API_URL}/auth/signup`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await axios.post(`${API_URL}/auth/signup`, formData);
 
       const { token, user } = response.data;
 
