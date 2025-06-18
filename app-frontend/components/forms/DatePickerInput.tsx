@@ -1,7 +1,7 @@
 // ✅ Fichier 1 : DatePickerInput.tsx
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, Platform, StyleSheet } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import DatePicker from 'react-native-date-picker';
 import { COLORS, SIZES } from '../../constants';
 
 interface DatePickerInputProps {
@@ -11,29 +11,25 @@ interface DatePickerInputProps {
 }
 
 export default function DatePickerInput({ value, onChange, placeholder = 'Date de naissance' }: DatePickerInputProps) {
-  const [show, setShow] = useState(false);
-
-  const onChangeInternal = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    setShow(Platform.OS === 'ios');
-    if (selectedDate) {
-      onChange(selectedDate);
-    }
-  };
+  const [open, setOpen] = useState(false);
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.input} onPress={() => setShow(true)}>
+      <TouchableOpacity style={styles.input} onPress={() => setOpen(true)}>
         <Text style={styles.text}>{value ? value.toLocaleDateString() : placeholder}</Text>
       </TouchableOpacity>
-      {show && (
-        <DateTimePicker
-          value={value || new Date()}
-          mode="date"
-          display="default"
-          onChange={onChangeInternal}
-          maximumDate={new Date()}
-        />
-      )}
+      <DatePicker
+        modal
+        open={open}
+        date={value || new Date()}
+        mode="date"
+        maximumDate={new Date()}
+        onConfirm={(date) => {
+          setOpen(false);
+          onChange(date);
+        }}
+        onCancel={() => setOpen(false)}
+      />
     </View>
   );
 }
