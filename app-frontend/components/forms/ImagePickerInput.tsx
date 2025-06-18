@@ -1,4 +1,3 @@
-// ✅ Fichier 2 : ImagePickerInput.tsx
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Image, StyleSheet, Text, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';

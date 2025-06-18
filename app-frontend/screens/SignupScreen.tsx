@@ -50,7 +50,9 @@ export default function SignupScreen() {
         formData.append('photo', { uri: photo, name, type: 'image/jpeg' } as any);
       }
 
-      const response = await axios.post(`${API_URL}/auth/register`, formData);
+      const response = await axios.post(`${API_URL}/auth/register`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       const { token, user } = response.data;
 
       if (!token || !user) {
