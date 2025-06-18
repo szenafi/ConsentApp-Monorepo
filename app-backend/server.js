@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, Prisma } = require('@prisma/client');
 const { z } = require('zod');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const CryptoJS = require('crypto-js');
@@ -217,6 +217,9 @@ app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
     res.status(201).json({ token, user: { ...user, firstName: user.firstName ?? '', lastName: user.lastName ?? '' } });
   } catch (error) {
     console.error('Erreur register:', error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return res.status(409).json({ message: 'Email already in use' });
+    }
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 });
