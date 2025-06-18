@@ -78,8 +78,9 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
   }
 });
 
-// Middleware JSON pour les autres routes (après le webhook)
+// Middleware JSON et urlencoded pour les autres routes (après le webhook)
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 const uploadDir = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadDir));
 const storage = multer.diskStorage({
@@ -156,17 +157,22 @@ const encrypt = (data) => CryptoJS.AES.encrypt(data, process.env.AES_SECRET_KEY)
 const decrypt = (ciphertext) => CryptoJS.AES.decrypt(ciphertext, process.env.AES_SECRET_KEY).toString(CryptoJS.enc.Utf8);
 
 // Routes d'authentification
-// Route d'inscription acceptant l'upload optionnel d'une photo de profil
+// Route d'inscription acceptant l'upload optionnel d'une photo de profil.
+// Accepte également des données JSON classiques pour une meilleure
+// compatibilité avec d'anciennes versions du frontend.
 app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
   try {
-    const data = {
-      email: req.body.email,
-      password: req.body.password,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      dateOfBirth: req.body.dateOfBirth,
-      photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
-    };
+    const isMultipart = req.is('multipart/form-data');
+    const data = isMultipart
+      ? {
+          email: req.body.email,
+          password: req.body.password,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          dateOfBirth: req.body.dateOfBirth,
+          photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+        }
+      : req.body;
     const parsed = signupSchema.parse(data);
     const hashedPassword = await bcrypt.hash(parsed.password, 10);
     const user = await prisma.user.create({
@@ -198,14 +204,17 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
 // Nouvelle route d'inscription avec upload de photo
 app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
   try {
-    const data = {
-      email: req.body.email,
-      password: req.body.password,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      dateOfBirth: req.body.dateOfBirth,
-      photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
-    };
+    const isMultipart = req.is('multipart/form-data');
+    const data = isMultipart
+      ? {
+          email: req.body.email,
+          password: req.body.password,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          dateOfBirth: req.body.dateOfBirth,
+          photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+        }
+      : req.body;
     const parsed = signupSchema.parse(data);
     const hashedPassword = await bcrypt.hash(parsed.password, 10);
     const user = await prisma.user.create({
