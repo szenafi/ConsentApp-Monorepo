@@ -24,7 +24,9 @@ export default function ImagePickerInput({ value, onChange }: ImagePickerInputPr
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes:
+        (ImagePicker as any).MediaType?.Images ??
+        (ImagePicker as any)['MediaTypeOptions'].Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -40,7 +42,9 @@ export default function ImagePickerInput({ value, onChange }: ImagePickerInputPr
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes:
+        (ImagePicker as any).MediaType?.Images ??
+        (ImagePicker as any)['MediaTypeOptions'].Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -94,3 +98,4 @@ const styles = StyleSheet.create({
   },
   placeholder: { color: COLORS.text },
 });
+

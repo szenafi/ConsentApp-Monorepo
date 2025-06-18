@@ -12,7 +12,7 @@ interface PhotoUploaderProps {
 export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   const [imageUri, setImageUri] = useState<string | null>(value ?? null);
 
-  // Sync with parent when reset
+  // Sync avec la valeur parent
   useEffect(() => {
     setImageUri(value ?? null);
   }, [value]);
@@ -27,7 +27,9 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
 
     const pickerOptions = {
       mediaTypes:
-        (ImagePicker as any).MediaType?.Images ?? ImagePicker.MediaTypeOptions.Images,
+        (ImagePicker as any).MediaType?.Images ??
+        (ImagePicker as any).MediaTypeOptions?.Images ??
+        ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1] as [number, number],
       quality: 0.8,
