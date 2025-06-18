@@ -78,11 +78,15 @@ export default function SignupScreen() {
         };
       }
 
-      const response = await api.post('/auth/signup', payload, {
-        headers: isFormData
-          ? { 'Content-Type': 'multipart/form-data' }
-          : { 'Content-Type': 'application/json' },
-      });
+      // Lorsqu'un FormData est envoyé, Axios définit automatiquement
+      // l'en-tête multipart avec la bonne boundary. Il ne faut donc pas le
+      // surcharger, sinon le backend reçoit des champs vides. On ne fixe
+      // explicitement l'en-tête que pour les requêtes JSON classiques.
+      const config = isFormData
+        ? undefined
+        : { headers: { 'Content-Type': 'application/json' } };
+
+      const response = await api.post('/auth/signup', payload, config);
 
       const { token, user } = response.data;
 
