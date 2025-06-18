@@ -86,6 +86,7 @@ export default function SignupScreen() {
         headers: isFormData
           ? { 'Content-Type': 'multipart/form-data' }
           : { 'Content-Type': 'application/json' },
+
       });
 
       const { token, user } = response.data;
