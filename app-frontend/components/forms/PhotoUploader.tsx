@@ -1,21 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Image, StyleSheet, Text, Alert } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Text,
+  Alert,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system';
 import { COLORS, SIZES } from '../../constants';
 
 interface PhotoUploaderProps {
-  value?: string | null;
-  onChange: (uri: string) => void;
+  value?: string | null; // base64 string
+  onChange: (base64: string | null) => void;
 }
 
 export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
-  const [imageUri, setImageUri] = useState<string | null>(value ?? null);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
 
-  // Garder l'aperçu local synchronisé avec la valeur parent
   useEffect(() => {
-    setImageUri(value ?? null);
+    if (value?.startsWith('data:image')) {
+      setPreviewUri(value);
+    } else {
+      setPreviewUri(null);
+    }
   }, [value]);
+
+  const convertToBase64 = async (uri: string): Promise<string> => {
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return `data:image/jpeg;base64,${base64}`;
+  };
 
   const pick = async (source: 'camera' | 'library') => {
     const permission =
@@ -25,13 +43,10 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
 
     if (!permission.granted) return;
 
-    const pickerOptions = {
-      mediaTypes:
-        (ImagePicker as any).MediaType?.Images ??
-        (ImagePicker as any).MediaTypeOptions?.Images ??
-        ImagePicker.MediaTypeOptions.Images,
+    const pickerOptions: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1] as [number, number],
+      aspect: [1, 1],
       quality: 0.8,
     };
 
@@ -40,23 +55,17 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
         ? await ImagePicker.launchCameraAsync(pickerOptions)
         : await ImagePicker.launchImageLibraryAsync(pickerOptions);
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const uri = await processImage(result.assets[0].uri);
-      setImageUri(uri);
-      onChange(uri);
+    if (!result.canceled && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      const processed = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 600 } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      const base64String = await convertToBase64(processed.uri);
+      setPreviewUri(base64String);
+      onChange(base64String);
     }
-  };
-
-  const processImage = async (uri: string): Promise<string> => {
-    const manipResult = await ImageManipulator.manipulateAsync(
-      uri,
-      [{ resize: { width: 600 } }],
-      {
-        compress: 0.8,
-        format: ImageManipulator.SaveFormat.JPEG,
-      }
-    );
-    return manipResult.uri;
   };
 
   const handlePress = () => {
@@ -70,8 +79,8 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.preview} onPress={handlePress}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} />
+        {previewUri ? (
+          <Image source={{ uri: previewUri }} style={styles.image} />
         ) : (
           <Text style={styles.placeholder}>Choisir une photo</Text>
         )}

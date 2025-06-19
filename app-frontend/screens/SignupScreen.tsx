@@ -47,46 +47,18 @@ export default function SignupScreen() {
         throw new Error('Vous devez avoir au moins 18 ans');
       }
 
-      let payload: any;
-      const isFormData = !!photo;
+      const payload = {
+        email: parsed.email,
+        password: parsed.password,
+        firstName: parsed.firstName,
+        lastName: parsed.lastName,
+        dateOfBirth: parsed.dateOfBirth ? parsed.dateOfBirth.toISOString() : undefined,
+        photo: parsed.photo, // base64 string (data:image/jpeg;base64,...)
+      };
 
-      if (isFormData) {
-        const formData = new FormData();
-        formData.append('email', parsed.email);
-        formData.append('password', parsed.password);
-        formData.append('firstName', parsed.firstName);
-        if (parsed.lastName) formData.append('lastName', parsed.lastName);
-        if (parsed.dateOfBirth) {
-          formData.append('dateOfBirth', parsed.dateOfBirth.toISOString());
-        }
-        const name = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
-        formData.append('photo', {
-          uri: photo,
-          name,
-          type: 'image/jpeg',
-        } as any);
-        payload = formData;
-      } else {
-        payload = {
-          email: parsed.email,
-          password: parsed.password,
-          firstName: parsed.firstName,
-          lastName: parsed.lastName,
-          dateOfBirth: parsed.dateOfBirth
-            ? parsed.dateOfBirth.toISOString()
-            : undefined,
-        };
-      }
-
-      // Lorsqu'un FormData est envoyé, Axios définit automatiquement
-      // l'en-tête multipart avec la bonne boundary. Il ne faut donc pas le
-      // surcharger, sinon le backend reçoit des champs vides. On ne fixe
-      // explicitement l'en-tête que pour les requêtes JSON classiques.
-      const config = isFormData
-        ? undefined
-        : { headers: { 'Content-Type': 'application/json' } };
-
-      const response = await api.post('/auth/signup', payload, config);
+      const response = await api.post('/auth/signup', payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       const { token, user } = response.data;
 
@@ -100,13 +72,9 @@ export default function SignupScreen() {
         await login(email, password);
         ToastAndroid.show('Inscription réussie', ToastAndroid.SHORT);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setEmail('');
-        setPassword('');
-        setFirstName('');
-        setLastName('');
         router.replace('/dashboard');
-      } catch (loginError) {
-        ToastAndroid.show('Inscription ok, connexion impossible', ToastAndroid.SHORT);
+      } catch {
+        ToastAndroid.show('Inscription OK, mais connexion impossible', ToastAndroid.SHORT);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         router.replace('/login');
       }
@@ -116,17 +84,13 @@ export default function SignupScreen() {
         error.message === 'Network Error'
           ? "Impossible de contacter le serveur. Vérifiez l'URL EXPO_PUBLIC_API_BASE_URL"
           : error?.response?.status === 409
-            ? 'Email déjà utilisé'
-            : error.message || 'Erreur lors de l’inscription';
+          ? 'Email déjà utilisé'
+          : error.message || 'Erreur lors de l’inscription';
       ToastAndroid.show(message, ToastAndroid.SHORT);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLoginNavigation = () => {
-    router.push('/login');
   };
 
   return (
@@ -164,7 +128,7 @@ export default function SignupScreen() {
           <Text style={styles.buttonText}>S’inscrire</Text>
         )}
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleLoginNavigation}>
+      <TouchableOpacity onPress={() => router.push('/login')}>
         <Text style={styles.loginText}>Déjà un compte ? Se connecter</Text>
       </TouchableOpacity>
     </View>

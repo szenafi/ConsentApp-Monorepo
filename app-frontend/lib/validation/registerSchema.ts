@@ -6,7 +6,7 @@ export const registerSchema = z.object({
   firstName: z.string().min(1, 'Prénom requis'),
   lastName: z.string().optional(),
   dateOfBirth: z.date().optional(),
-  photo: z.string().optional(),
+  photo: z.string().nullable().optional(), // ✅ correction ici
 });
 
 export type RegisterSchema = z.infer<typeof registerSchema>;

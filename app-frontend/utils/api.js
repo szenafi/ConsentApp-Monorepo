@@ -5,7 +5,6 @@ import { API_URL, API_BASE_URL } from '../constants';
 // Instance principale pour les routes sous /api
 const api = axios.create({
   baseURL: API_URL,
-  // Un délai plus élevé évite les faux timeouts lors de l'envoi de fichiers
   timeout: 30000,
 });
 
@@ -15,7 +14,7 @@ const rootApi = axios.create({
   timeout: 30000,
 });
 
-// Intercepteur : injecte le token dans chaque requête API (instance api)
+// Intercepteur : injecte le token dans chaque requête API
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -30,23 +29,11 @@ api.interceptors.request.use(
     }
   },
   (error) => {
-    console.error('Erreur Axios :', {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
     return Promise.reject(error);
   }
 );
 
 // ----------- FONCTIONS UTILISATEUR ET AUTH -----------
-
-// Test la connexion DB (route racine)
-export async function testDB() {
-  const res = await rootApi.get('/test-db');
-  return res.data;
-}
 
 // Connexion utilisateur
 export async function login({ email, password }) {
@@ -62,6 +49,45 @@ export async function login({ email, password }) {
   }
 }
 
+// ✅ Inscription avec photo (FormData)
+export async function signupWithPhoto({ email, password, firstName, lastName, dateOfBirth, photo }) {
+  const formData = new FormData();
+
+  formData.append('email', email);
+  formData.append('password', password);
+  if (firstName) formData.append('firstName', firstName);
+  if (lastName) formData.append('lastName', lastName);
+  if (dateOfBirth) formData.append('dateOfBirth', dateOfBirth);
+
+  if (photo && photo.uri) {
+    formData.append('photo', {
+      uri: photo.uri,
+      name: photo.fileName || 'photo.jpg',
+      type: photo.type || 'image/jpeg',
+    });
+  }
+
+  try {
+    const response = await axios.post(`${API_URL}/auth/signup`, formData, {
+      headers: {
+        // Ne surtout pas définir Content-Type ici !
+        Accept: 'application/json',
+      },
+      timeout: 30000,
+    });
+
+    const { token, user } = response.data;
+    await SecureStore.setItemAsync('authToken', token);
+    return { token, user };
+  } catch (error) {
+    console.error('Erreur signupWithPhoto:', error.message);
+    if (error.response) {
+      throw new Error(error.response.data?.message || 'Erreur lors de l’inscription');
+    } else {
+      throw new Error('Erreur réseau ou timeout');
+    }
+  }
+}
 
 // Infos utilisateur connecté
 export async function fetchUserInfo(passedToken) {
@@ -78,10 +104,9 @@ export async function updateProfile(data) {
   return res.data;
 }
 
-// ----------- RECHERCHE UTILISATEUR MODERNE -----------
+// Recherche utilisateur
 export async function searchUsers(q) {
   const res = await api.get(`/user/search?query=${encodeURIComponent(q)}`);
-  console.log("Résultat de la recherche API :", res.data); // log utile
   return res.data;
 }
 
@@ -97,19 +122,16 @@ export async function createConsent(payload) {
   return res.data;
 }
 
-// Accepter un consentement (PARTENAIRE)
 export async function acceptConsent(consentId) {
   const res = await api.put(`/consent/${consentId}/accept-partner`);
   return res.data;
 }
 
-// Refuser un consentement (PARTENAIRE)
 export async function refuseConsent(consentId) {
   const res = await api.put(`/consent/${consentId}/refuse-partner`);
   return res.data;
 }
 
-// Confirmer biométriquement (INITIATEUR OU PARTENAIRE)
 export async function confirmConsentBiometric(consentId, userId) {
   const res = await api.put(`/consent/${consentId}/confirm-biometric`, { userId });
   return res.data;
@@ -129,6 +151,13 @@ export async function createPaymentSheet(quantity) {
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Erreur lors de la création du Payment Sheet');
   }
+}
+
+// ----------- TEST -----------
+
+export async function testDB() {
+  const res = await rootApi.get('/test-db');
+  return res.data;
 }
 
 // ----------- EXPORTS -----------
