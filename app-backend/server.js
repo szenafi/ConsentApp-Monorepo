@@ -23,12 +23,12 @@ const prisma = new PrismaClient({
   log: ['error'],
 });
 
-// Configuration CORS pour Railway
-app.use(cors({
-  origin: '*', // Autorise toutes les origines pour les tests
-  // origin: ['https://*.expo.dev', 'exp://192.168.95.14:8081', 'http://localhost:8081'],
-  credentials: true,
-}));
+// Configuration CORS
+// En phase de développement on autorise toutes les origines. Il est préférable
+// d'ajuster cette liste via la variable d'environnement CORS_ORIGIN en
+// production.
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+app.use(cors({ origin: corsOrigin }));
 
 // Middleware pour le webhook Stripe (doit être avant express.json())
 app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -173,6 +173,12 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
   try {
     const isMultipart = req.is('multipart/form-data');
 
+    console.log('Signup request received. Multipart:', isMultipart);
+    if (isMultipart) {
+      console.log('Fields:', req.body);
+      console.log('File:', req.file);
+    }
+
     let body = {};
     if (isMultipart) {
       // Lorsque le frontend envoie un FormData, Express ne parse pas
@@ -230,6 +236,7 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Erreur lors de l\'inscription :', error);
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Erreur de validation', errors: error.errors });
     }

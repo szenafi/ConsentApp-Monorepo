@@ -5,13 +5,14 @@ import { API_URL, API_BASE_URL } from '../constants';
 // Instance principale pour les routes sous /api
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  // Un délai plus élevé évite les faux timeouts lors de l'envoi de fichiers
+  timeout: 30000,
 });
 
 // Instance pour les routes racines (e.g. /test-db)
 const rootApi = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
 });
 
 // Intercepteur : injecte le token dans chaque requête API (instance api)
