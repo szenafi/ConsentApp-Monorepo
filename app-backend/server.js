@@ -10,8 +10,14 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const CryptoJS = require('crypto-js');
 const { OAuth2Client } = require('google-auth-library');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Initialisation de l'application et Prisma
 const app = express();
@@ -81,19 +87,7 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
 // Middleware JSON et urlencoded pour les autres routes (après le webhook)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const uploadDir = path.join(__dirname, 'uploads');
-app.use('/uploads', express.static(uploadDir));
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
-  }
-});
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Middleware de validation Zod
 const validate = (schema) => async (req, res, next) => {
@@ -184,13 +178,27 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
       // Lorsque le frontend envoie un FormData, Express ne parse pas
       // automatiquement les valeurs JSON. On récupère donc les champs
       // manuellement depuis req.body et on ajoute l'URL de la photo si présente.
+      let uploadedUrl;
+      if (req.file) {
+        uploadedUrl = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: 'consent-app' },
+            (err, result) => {
+              if (err) return reject(err);
+              resolve(result.secure_url);
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+      }
+
       body = {
         email: req.body.email,
         password: req.body.password,
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         dateOfBirth: req.body.dateOfBirth,
-        photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+        photoUrl: uploadedUrl,
       };
     } else {
       body = req.body;
@@ -254,16 +262,32 @@ app.post('/api/auth/signup', upload.single('photo'), async (req, res) => {
 app.post('/api/auth/register', upload.single('photo'), async (req, res) => {
   try {
     const isMultipart = req.is('multipart/form-data');
-    const data = isMultipart
-      ? {
-          email: req.body.email,
-          password: req.body.password,
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-          dateOfBirth: req.body.dateOfBirth,
-          photoUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
-        }
-      : req.body;
+    let data;
+    if (isMultipart) {
+      let uploadedUrl;
+      if (req.file) {
+        uploadedUrl = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: 'consent-app' },
+            (err, result) => {
+              if (err) return reject(err);
+              resolve(result.secure_url);
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+      }
+      data = {
+        email: req.body.email,
+        password: req.body.password,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        dateOfBirth: req.body.dateOfBirth,
+        photoUrl: uploadedUrl,
+      };
+    } else {
+      data = req.body;
+    }
     const parsed = signupSchema.parse(data);
     const hashedPassword = await bcrypt.hash(parsed.password, 10);
     const user = await prisma.user.create({
