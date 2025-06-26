@@ -18,7 +18,16 @@ if (!process.env.EXPO_PUBLIC_API_BASE_URL) {
   }
 }
 
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || fallbackBase;
+// Base définie par l'environnement ou fallback
+const rawBase = process.env.EXPO_PUBLIC_API_BASE_URL || fallbackBase;
+
+// Nettoie l'URL en supprimant un éventuel suffixe /api ou un slash final
+let sanitizedBase = rawBase.replace(/\/$/, '');
+if (sanitizedBase.endsWith('/api')) {
+  sanitizedBase = sanitizedBase.slice(0, -4);
+}
+
+export const API_BASE_URL = sanitizedBase;
 
 // URL de l’API (préfixe /api)
 export const API_URL = `${API_BASE_URL}/api`;
