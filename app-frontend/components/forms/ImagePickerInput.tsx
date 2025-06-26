@@ -25,7 +25,7 @@ export default function ImagePickerInput({ value, onChange }: ImagePickerInputPr
     if (!permission.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       // Utilise la valeur compatible avec toutes les versions d'Expo
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Image],
 
       allowsEditing: true,
       aspect: [1, 1],
@@ -42,7 +42,7 @@ export default function ImagePickerInput({ value, onChange }: ImagePickerInputPr
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Image],
 
       allowsEditing: true,
       aspect: [1, 1],
