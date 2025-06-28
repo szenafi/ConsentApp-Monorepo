@@ -12,7 +12,10 @@ import Constants from 'expo-constants';
 // 3. À défaut, on tombe sur l'instance Render publique.
 //    (nommée "consentapp-backend" dans render.yaml)
 let fallbackBase = 'https://consentapp-backend.onrender.com';
-if (!process.env.EXPO_PUBLIC_API_BASE_URL) {
+if (
+  !process.env.EXPO_PUBLIC_API_BASE_URL &&
+  process.env.EXPO_USE_LOCAL_BACKEND === 'true'
+) {
   const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
   if (devHost) {
     fallbackBase = `http://${devHost}:8080`;

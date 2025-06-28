@@ -103,6 +103,8 @@ Frontend (.env dans app-frontend)
 EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
 # Pour la version déployée sur Render, utilisez :
 # EXPO_PUBLIC_API_BASE_URL=https://consentapp-backend.onrender.com
+# Pour forcer l'utilisation d'un backend local pendant le dev Expo :
+# EXPO_USE_LOCAL_BACKEND=true
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
 
 L'endpoint `/api/auth/signup` accepte aussi bien un corps JSON classique
