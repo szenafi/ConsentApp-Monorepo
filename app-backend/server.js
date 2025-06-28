@@ -303,6 +303,14 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
+// Journalisation des requêtes vers les routes /api/user pour faciliter le debug
+app.use('/api/user', (req, res, next) => {
+  console.log(
+    `[USER] ${new Date().toISOString()} -> ${req.method} ${req.originalUrl}`
+  );
+  next();
+});
+
 // Route pour récupérer les informations utilisateur
 app.get('/api/user/info', authenticateToken, async (req, res) => {
   try {

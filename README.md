@@ -135,6 +135,14 @@ En cas d’erreur « Network Error » lors de l’inscription, assurez‑vous qu
 `EXPO_PUBLIC_API_BASE_URL` pointe vers une adresse accessible par votre
 émulateur ou votre téléphone.
 
+### Déboguer un 404 sur `/api/user/info`
+
+Si l'application mobile reçoit un statut **404** lors de l'appel à `GET /api/user/info`, suivez ces étapes :
+
+1. Vérifiez que le backend est bien lancé et que l'URL dans `EXPO_PUBLIC_API_BASE_URL` correspond à ce backend (`curl $EXPO_PUBLIC_API_BASE_URL/api/user/info` devrait répondre 401 ou 200).
+2. Assurez-vous que la variable `EXPO_PUBLIC_API_BASE_URL` est chargée par Expo (`npx expo start` affiche sa valeur dans les logs si définie).
+3. Consultez les logs serveur : grâce au middleware ajouté dans `server.js`, chaque requête vers `/api/user/*` est journalisée dans la console.
+
 Auteurs
 
 🧐 Chef de projet : Said Zenafi
