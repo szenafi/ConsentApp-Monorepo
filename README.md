@@ -105,6 +105,7 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
 # EXPO_PUBLIC_API_BASE_URL=https://consentapp-monorepo.onrender.com
 # Pour forcer l'utilisation d'un backend local pendant le dev Expo :
 # EXPO_USE_LOCAL_BACKEND=true
+
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
 
 L'endpoint `/api/auth/signup` accepte aussi bien un corps JSON classique
@@ -150,5 +151,6 @@ Un fichier `render.yaml` est fourni à la racine pour déployer
 l'API sur [Render](https://render.com). Il indique à Render de lancer
 le serveur situé dans `app-backend` sous le nom de service
 `consentapp-monorepo`. Depuis le tableau de bord Render,
+
 il suffit de connecter ce dépôt et de laisser Render détecter le fichier
 `render.yaml`.

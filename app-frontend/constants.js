@@ -16,6 +16,7 @@ if (
   !process.env.EXPO_PUBLIC_API_BASE_URL &&
   process.env.EXPO_USE_LOCAL_BACKEND === 'true'
 ) {
+
   const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
   if (devHost) {
     fallbackBase = `http://${devHost}:8080`;
