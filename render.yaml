@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: consentapp-backend
+    env: node
+    rootDir: app-backend
+    buildCommand: npm install
+    startCommand: npm start
