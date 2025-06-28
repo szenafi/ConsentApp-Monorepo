@@ -8,25 +8,26 @@ app-backend : l'API Node.js/Express qui gère les utilisateurs, les consentement
 
 Installation
 
-Clonez le dépôt puis installez les dépendances de chaque partie :
+Clonez le dépôt puis installez les dépendances :
 
+```bash
 git clone <URL-du-dépôt>
-cd ConsentApp-Monorepo/app-backend
-npm install
-cd ../app-frontend
-npm install
+cd ConsentApp-Monorepo
+npm run install-all
+```
 
 Démarrage
 
-Lancez d'abord le backend puis le frontend :
+Lancez d'abord le backend (ouvert sur `npm start` à la racine) puis le frontend :
 
+```bash
 # Backend
-cd app-backend
-node server.js
+npm start
 
 # Frontend
-cd ../app-frontend
+cd app-frontend
 npm start
+```
 
 Fonctionnalités principales
 
@@ -100,6 +101,8 @@ Frontend (.env dans app-frontend)
 
 # Utilisé côté mobile
 EXPO_PUBLIC_API_BASE_URL=http://localhost:8080
+# Pour la version déployée sur Render, utilisez :
+# EXPO_PUBLIC_API_BASE_URL=https://consentapp-backend.onrender.com
 EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=<clé-publiable-stripe>
 
 L'endpoint `/api/auth/signup` accepte aussi bien un corps JSON classique
@@ -138,3 +141,11 @@ Auteurs
 Licence
 
 Ce projet est sous licence MIT.
+
+## Déploiement Render
+
+Un fichier `render.yaml` est fourni à la racine pour déployer
+l'API sur [Render](https://render.com). Il indique à Render de lancer
+le serveur situé dans `app-backend`. Depuis le tableau de bord Render,
+il suffit de connecter ce dépôt et de laisser Render détecter le fichier
+`render.yaml`.
