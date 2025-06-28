@@ -33,7 +33,7 @@ export default function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
     if (!permission.granted) return;
 
     const pickerOptions: ImagePicker.ImagePickerOptions = {
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Image],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
