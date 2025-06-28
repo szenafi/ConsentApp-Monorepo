@@ -10,8 +10,12 @@ import Constants from 'expo-constants';
 // 2. Sinon, en développement, on essaie d'utiliser l'IP de l'ordinateur
 //    (via expoConfig.hostUri) sur le port 8080.
 // 3. À défaut, on tombe sur l'instance Render publique.
-let fallbackBase = 'https://app-backend-h0p5.onrender.com';
-if (!process.env.EXPO_PUBLIC_API_BASE_URL) {
+//    (nommée "consentapp-monorepo" dans render.yaml)
+let fallbackBase = 'https://consentapp-monorepo.onrender.com';
+if (
+  !process.env.EXPO_PUBLIC_API_BASE_URL &&
+  process.env.EXPO_USE_LOCAL_BACKEND === 'true'
+) {
   const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
   if (devHost) {
     fallbackBase = `http://${devHost}:8080`;
