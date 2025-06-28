@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: consentapp-backend
+    name: consentapp-monorepo
     env: node
     rootDir: app-backend
     buildCommand: npm install
